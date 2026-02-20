@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --savra-primary: #6366f1;
+  --savra-secondary: #8b5cf6;
+  --savra-accent: #f59e0b;
+  --savra-dark: #1e1b4b;
+  --savra-muted: #64748b;
+  --bg-app: #f1f5f9;
+  --card-bg: #ffffff;
+  --sidebar-bg: #1e1b4b;
+  --sidebar-text: #e2e8f0;
+  --sidebar-active: #6366f1;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg-app);
+}
+
+body {
+  min-height: 100vh;
+}
+
+/* Card hover and shadow */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -8px rgba(30, 27, 75, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+/* Chart container */
+.recharts-wrapper {
+  outline: none;
+}
+
+/* Scrollbar thin */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
