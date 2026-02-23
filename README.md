@@ -108,13 +108,32 @@ Open **http://localhost:3000** in the browser (if port 3000 is busy, Next.js may
 - **Real-time**: Optionally use WebSockets or polling for live activity updates.
 - **AI-generated summaries**: Optional bonus – generate short insight summaries (e.g. “Grade 7 teachers created 40% more quizzes this week”) using an LLM API.
 
-## Deployment
+## Deployment (Vercel)
 
-- **Vercel** (recommended): Connect the GitHub repo to Vercel; build command `npm run build`, output directory `.next`. No extra config needed for this app.
-- **Render**: Use a Web Service; build command `npm run build`, start command `npm start`.
-- **Other**: Run `npm run build` and `npm start`; set `NODE_ENV=production`.
+### Deploy steps (DEPLOYMENT_NOT_FOUND avoid karne ke liye)
 
-Ensure the deployed app is served over HTTPS and that the live URL is shared for the assignment submission.
+1. **Vercel pe jao:** [vercel.com](https://vercel.com) → Login (GitHub se).
+2. **New Project:** "Add New" → "Project" → GitHub repo **Arunverma759954/School-Admin** select karo.
+3. **Settings:**  
+   - Framework: **Next.js** (auto-detect).  
+   - Build Command: `npm run build`  
+   - Output: default (leave blank).  
+   - Root Directory: blank.  
+4. **Deploy** dabao. Pehli baar build chalegi – 2–3 min wait karo.
+5. **Live URL:** Build success ke baad "Visit" / production URL open karo. Ye hi tumhara **live link** hai (e.g. `https://school-admin-xxx.vercel.app`).
+
+### Agar "DEPLOYMENT_NOT_FOUND" / 404 aaye
+
+- **Sahi URL use karo:** Vercel Dashboard → Project → "Domains" ya "Deployments" se **production URL** copy karke open karo. Purana / galat link mat use karo.
+- **Deployment create karo:** "Deployments" tab → "Redeploy" (latest commit pe) ya naya deploy trigger karo. Failed deploy pe 404 aata hai – build logs check karo.
+- **Build fix karo:** Build fail ho to Vercel "Building" page pe error dikhayega. Wahi fix karo (e.g. `npm run build` local pe chalake dekho), commit + push, phir Vercel auto redeploy karega.
+
+### Render / Other
+
+- **Render:** Web Service; Build: `npm run build`, Start: `npm start`.
+- **Other:** `npm run build` then `npm start`; `NODE_ENV=production`.
+
+Deployed app HTTPS pe chalni chahiye; assignment ke liye **live deployment link** submit karo.
 
 ## Assignment Checklist
 
