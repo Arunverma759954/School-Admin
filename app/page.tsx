@@ -65,39 +65,41 @@ export default function DashboardPage() {
   }, [range]);
 
   return (
-    <div className="p-6 lg:p-8 max-w-7xl mx-auto">
+    <div className="p-6 lg:p-8 max-w-7xl mx-auto min-h-full">
       {/* Header */}
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Admin Companion</h1>
-          <p className="text-slate-500 text-sm mt-0.5">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+            Admin Companion
+          </h1>
+          <p className="text-slate-500 text-sm mt-1">
             Beta – See what&apos;s happening across your school.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               type="search"
               placeholder="Search for teacher or school"
-              className="pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm w-52 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
+              className="pl-10 pr-4 py-2.5 rounded-xl border border-slate-200/90 bg-white/90 text-sm w-52 focus:ring-2 focus:ring-indigo-500/25 focus:border-indigo-400 transition-shadow shadow-sm"
             />
           </div>
           <button
             type="button"
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-xl text-sm font-medium hover:from-indigo-700 hover:to-indigo-600 transition-all shadow-md shadow-indigo-500/25 hover:shadow-lg hover:shadow-indigo-500/30"
           >
             <Plus className="w-4 h-4" />
             Create
           </button>
           <div className="relative">
             <select
-              className="appearance-none pl-4 pr-8 py-2.5 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+              className="appearance-none pl-4 pr-9 py-2.5 rounded-xl border border-slate-200/90 bg-white text-sm focus:ring-2 focus:ring-indigo-500/25 focus:border-indigo-400 shadow-sm"
               defaultValue="all"
             >
               <option value="all">All Subjects</option>
             </select>
-            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
           </div>
         </div>
       </header>
@@ -106,14 +108,14 @@ export default function DashboardPage() {
       <section>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <h2 className="text-lg font-semibold text-slate-800">Insights</h2>
-          <div className="flex rounded-lg border border-slate-200 p-1 bg-white shadow-sm">
+          <div className="flex rounded-xl border border-slate-200/80 p-1 bg-white/80 shadow-sm backdrop-blur-sm">
             {TIME_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
                 onClick={() => setRange(opt.value)}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   range === opt.value
-                    ? "bg-indigo-500 text-white shadow"
+                    ? "bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-md"
                     : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                 }`}
               >
@@ -173,11 +175,11 @@ export default function DashboardPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 rounded-xl border border-slate-200 bg-white p-6 shadow-sm card-hover">
+              <div className="lg:col-span-2 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm card-hover">
                 <h3 className="text-sm font-semibold text-slate-700 mb-4">
                   Weekly activity (Past 7 days)
                 </h3>
-                <div className="h-64">
+                <div className="h-64 rounded-xl bg-slate-50/50 p-2">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={weekly} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                       <defs>
@@ -231,7 +233,7 @@ export default function DashboardPage() {
                   </ResponsiveContainer>
                 </div>
               </div>
-              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm card-hover">
+              <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm card-hover">
                 <h3 className="text-sm font-semibold text-slate-700 mb-4">
                   Attribute Summary
                 </h3>
@@ -252,15 +254,15 @@ export default function DashboardPage() {
               </div>
             </div>
             {aiSummaries.length > 0 && (
-              <div className="rounded-xl border border-indigo-200 bg-indigo-50/50 p-5 shadow-sm mt-6">
+              <div className="rounded-2xl border border-indigo-200/80 bg-gradient-to-br from-indigo-50/90 to-violet-50/70 p-6 shadow-sm mt-6 card-hover">
                 <h3 className="text-sm font-semibold text-indigo-800 mb-3 flex items-center gap-2">
-                  <span className="text-indigo-500">◆</span> AI Pulse Summary
+                  <span className="w-2 h-2 rounded-full bg-indigo-500" /> AI Pulse Summary
                 </h3>
-                <ul className="space-y-2 text-sm text-slate-700">
+                <ul className="space-y-2.5 text-sm text-slate-700">
                   {aiSummaries.map((line, i) => (
-                    <li key={i} className="flex gap-2">
-                      <span className="text-indigo-500 shrink-0">•</span>
-                      {line}
+                    <li key={i} className="flex gap-2 items-start">
+                      <span className="text-indigo-500 shrink-0 mt-0.5">•</span>
+                      <span>{line}</span>
                     </li>
                   ))}
                 </ul>
@@ -287,6 +289,13 @@ function MetricCard({
   timeLabel?: string;
 }) {
   const colorMap: Record<string, string> = {
+    indigo: "from-indigo-500 to-indigo-600",
+    emerald: "from-emerald-500 to-teal-500",
+    sky: "from-sky-500 to-cyan-500",
+    amber: "from-amber-500 to-orange-500",
+    violet: "from-violet-500 to-purple-500",
+  };
+  const barColor: Record<string, string> = {
     indigo: "bg-indigo-500",
     emerald: "bg-emerald-500",
     sky: "bg-sky-500",
@@ -294,20 +303,20 @@ function MetricCard({
     violet: "bg-violet-500",
   };
   return (
-    <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm card-hover">
+    <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm card-hover">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-sm font-medium text-slate-500">{label}</p>
-          <p className="text-2xl font-bold text-slate-900 mt-1">{value}</p>
-          <p className="text-xs text-slate-400 mt-0.5">{timeLabel}</p>
+          <p className="text-2xl font-bold text-slate-900 mt-1 tracking-tight">{value}</p>
+          <p className="text-xs text-slate-400 mt-1">{timeLabel}</p>
         </div>
-        <div className={`w-11 h-11 rounded-xl ${colorMap[color]} flex items-center justify-center shrink-0`}>
-          <Icon className="w-5 h-5 text-white" />
+        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colorMap[color]} flex items-center justify-center shrink-0 shadow-lg`}>
+          <Icon className="w-6 h-6 text-white" />
         </div>
       </div>
-      <div className="mt-4 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+      <div className="mt-4 h-2 rounded-full bg-slate-100 overflow-hidden">
         <div
-          className={`h-full rounded-full ${colorMap[color]} opacity-80`}
+          className={`h-full rounded-full ${barColor[color]} opacity-90 transition-all duration-500`}
           style={{ width: typeof value === "number" ? `${Math.min(100, value * 2)}%` : "60%" }}
         />
       </div>

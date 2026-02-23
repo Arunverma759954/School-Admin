@@ -26,24 +26,26 @@ export default function TeachersListPage() {
   }, [range]);
 
   return (
-    <div className="p-6 lg:p-8 max-w-6xl mx-auto">
+    <div className="p-6 lg:p-8 max-w-6xl mx-auto min-h-full">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Teachers</h1>
-        <div className="flex flex-wrap items-center gap-2">
+        <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+          Teachers
+        </h1>
+        <div className="flex flex-wrap items-center gap-3">
           <Link
             href="/per-teacher"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-savra-primary text-white rounded-lg text-sm font-medium hover:bg-indigo-600 transition-colors"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-xl text-sm font-medium hover:from-indigo-700 hover:to-indigo-600 transition-all shadow-md shadow-indigo-500/25"
           >
             <BarChart3 className="w-4 h-4" />
             Per teacher analysis
           </Link>
-          <div className="flex rounded-lg border border-slate-200 p-0.5 bg-slate-50">
+          <div className="flex rounded-xl border border-slate-200/80 p-1 bg-white/80 shadow-sm">
           {TIME_OPTIONS.map((opt) => (
             <button
               key={opt.value}
               onClick={() => setRange(opt.value)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                range === opt.value ? "bg-white text-savra-primary shadow-sm" : "text-slate-600 hover:text-slate-900"
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                range === opt.value ? "bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
               }`}
             >
               {opt.label}
@@ -56,7 +58,7 @@ export default function TeachersListPage() {
       {loading ? (
         <div className="space-y-4">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-24 rounded-xl bg-slate-200 animate-pulse" />
+            <div key={i} className="h-24 rounded-2xl bg-slate-200/80 animate-pulse" />
           ))}
         </div>
       ) : (
@@ -65,7 +67,7 @@ export default function TeachersListPage() {
             <Link
               key={t.teacher_id}
               href={`/per-teacher?teacher=${t.teacher_id}`}
-              className="block rounded-xl border border-slate-200 bg-white p-5 shadow-sm card-hover"
+              className="block rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm card-hover"
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -75,16 +77,16 @@ export default function TeachersListPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-6">
-                  <span className="flex items-center gap-1.5 text-slate-600">
-                    <BookOpen className="w-4 h-4 text-sky-500" />
+                  <span className="flex items-center gap-2 text-slate-600 bg-sky-50 px-2.5 py-1 rounded-lg">
+                    <BookOpen className="w-4 h-4 text-sky-600" />
                     {t.lessons}
                   </span>
-                  <span className="flex items-center gap-1.5 text-slate-600">
-                    <FileQuestion className="w-4 h-4 text-amber-500" />
+                  <span className="flex items-center gap-2 text-slate-600 bg-amber-50 px-2.5 py-1 rounded-lg">
+                    <FileQuestion className="w-4 h-4 text-amber-600" />
                     {t.quizzes}
                   </span>
-                  <span className="flex items-center gap-1.5 text-slate-600">
-                    <ClipboardList className="w-4 h-4 text-violet-500" />
+                  <span className="flex items-center gap-2 text-slate-600 bg-violet-50 px-2.5 py-1 rounded-lg">
+                    <ClipboardList className="w-4 h-4 text-violet-600" />
                     {t.assessments}
                   </span>
                   <ChevronRight className="w-5 h-5 text-slate-400" />

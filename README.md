@@ -51,6 +51,19 @@ Assignment mein **data modeling, API design, aur Node.js / SQL–NoSQL** ki baat
 
 ---
 
+## HR Excel Data (Savra_Teacher Data Set.xlsx)
+
+Dashboard **HR ke bheje hue Excel** se data le sakta hai:
+
+1. Excel file ko project ke andar **`data/`** folder mein copy karo:  
+   `f:\School-admin-details\data\Savra_Teacher Data Set.xlsx`
+2. Server **restart** karo (`npm run dev` band karke dubara chalao).  
+3. Ab dashboard par Excel wala data dikhega. File nahi hogi to dummy data chalega.
+
+Expected columns: `teacher_id`, `teacher_name`, `activity_type`, `created_at`, `subject`, `class` (names thode alag ho to bhi map ho jate hain). Zyada detail ke liye `data/README.md` dekho.
+
+---
+
 ## Getting Started
 
 ```bash
@@ -60,24 +73,17 @@ npm run dev
 
 Open **http://localhost:3000** in the browser (if port 3000 is busy, Next.js may use 3001 — check the terminal). Use the sidebar: **Dashboard**, **Teachers**, **Per teacher analysis**, **Students**, **Classrooms**, **Assessments**, **Reports**.
 
-### If you see 404 for JS/CSS (main-app.js, page.js, layout.js, etc.)
+### If you see 404 for JS/CSS (layout.css, main-app.js, page.js, etc.)
 
-1. **Always use the dev server URL**  
-   Open **http://localhost:3000** (or the port shown in the terminal). Do not open the project as a file (`file:///...`).
-
-2. **Clean build and restart**  
-   ```bash
-   # Delete .next and cache, then start again
-   # Windows (PowerShell):
-   Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue; Remove-Item -Recurse -Force node_modules\.cache -ErrorAction SilentlyContinue
+1. **Pehle dev server band karo** – jis terminal mein `npm run dev` chal raha hai, wahan **Ctrl+C** dabao.
+2. **Clean karke dubara chalao** (PowerShell):
+   ```powershell
+   Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue
+   Remove-Item -Recurse -Force node_modules\.cache -ErrorAction SilentlyContinue
    npm run dev
    ```
-
-3. **Hard refresh the browser**  
-   Press **Ctrl+Shift+R** (Windows/Linux) or **Cmd+Shift+R** (Mac) to skip cache. Or clear the site data for localhost.
-
-4. **Production**  
-   Use `npm run build` then `npm start`, and open **http://localhost:3000**. Do not serve the built app from another web server that doesn’t proxy `/_next/*` to the Next.js server.
+3. Browser mein **http://localhost:3000** open karo (file:// mat use karo). **Ctrl+Shift+R** se hard refresh karo.
+4. **Production:** `npm run build` phir `npm start`; app hamesha Next.js server se serve karo.
 
 ## Architecture Decisions
 

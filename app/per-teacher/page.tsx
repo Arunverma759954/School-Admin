@@ -128,8 +128,10 @@ export default function PerTeacherPage() {
     : 0;
 
   return (
-    <div className="p-6 lg:p-8 max-w-6xl mx-auto pb-20">
-      <h1 className="text-xl font-bold text-slate-900 mb-4">Per teacher analysis</h1>
+    <div className="p-6 lg:p-8 max-w-6xl mx-auto pb-20 min-h-full">
+      <h1 className="text-xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent mb-4">
+        Per teacher analysis
+      </h1>
       {/* Header bar: Search, Create, All Sessions, All teachers, Time filters */}
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div className="flex flex-wrap items-center gap-2">
@@ -138,12 +140,12 @@ export default function PerTeacherPage() {
             <input
               type="search"
               placeholder={teacherId && data?.teacher ? `Search ${data.teacher.teacher_name}` : "Search here"}
-              className="pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm w-44 focus:outline-none focus:ring-2 focus:ring-savra-primary/30"
+              className="pl-9 pr-4 py-2.5 rounded-xl border border-slate-200/90 bg-white text-sm w-44 focus:ring-2 focus:ring-indigo-500/25 focus:border-indigo-400 shadow-sm"
             />
           </div>
           <button
             type="button"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-xl text-sm font-medium hover:from-indigo-700 hover:to-indigo-600 transition-all shadow-md shadow-indigo-500/25"
           >
             <Plus className="w-4 h-4" />
             Create
@@ -173,13 +175,13 @@ export default function PerTeacherPage() {
             <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
           </div>
         </div>
-        <div className="flex rounded-lg border border-slate-200 p-0.5 bg-slate-50">
+        <div className="flex rounded-xl border border-slate-200/80 p-1 bg-white/80 shadow-sm">
           {TIME_OPTIONS.map((opt) => (
             <button
               key={opt.value}
               onClick={() => setRange(opt.value)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                range === opt.value ? "bg-white text-savra-primary shadow-sm" : "text-slate-600 hover:text-slate-900"
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                range === opt.value ? "bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
               }`}
             >
               {opt.label}
@@ -199,7 +201,9 @@ export default function PerTeacherPage() {
       ) : data ? (
         <>
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-slate-900">{data.teacher.teacher_name}</h1>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+              {data.teacher.teacher_name}
+            </h1>
             <p className="text-slate-500 mt-0.5">Performance Overview</p>
             <p className="text-sm text-slate-600 mt-2">
               Subject: {data.teacher.subjects.join(", ") || "—"}
@@ -211,9 +215,9 @@ export default function PerTeacherPage() {
 
           {/* Performance metrics: Created, Conducted, Assigned, Live Engagement Score */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm card-hover">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm card-hover">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-xl bg-sky-100 flex items-center justify-center">
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-sky-100 to-sky-50 flex items-center justify-center">
                   <BookOpen className="w-5 h-5 text-sky-600" />
                 </div>
                 <div>
@@ -222,9 +226,9 @@ export default function PerTeacherPage() {
                 </div>
               </div>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm card-hover">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm card-hover">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-xl bg-emerald-100 flex items-center justify-center">
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-50 flex items-center justify-center">
                   <PlayCircle className="w-5 h-5 text-emerald-600" />
                 </div>
                 <div>
@@ -233,9 +237,9 @@ export default function PerTeacherPage() {
                 </div>
               </div>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm card-hover">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm card-hover">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-xl bg-violet-100 flex items-center justify-center">
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-violet-100 to-violet-50 flex items-center justify-center">
                   <ClipboardList className="w-5 h-5 text-violet-600" />
                 </div>
                 <div>
@@ -244,9 +248,9 @@ export default function PerTeacherPage() {
                 </div>
               </div>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm card-hover">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm card-hover">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-xl bg-amber-100 flex items-center justify-center">
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-100 to-amber-50 flex items-center justify-center">
                   <TrendingUp className="w-5 h-5 text-amber-600" />
                 </div>
                 <div>
@@ -260,7 +264,7 @@ export default function PerTeacherPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             {/* Class-wise Breakdown */}
-            <div className="lg:col-span-2 rounded-xl border border-slate-200 bg-white p-6 shadow-sm card-hover">
+            <div className="lg:col-span-2 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm card-hover">
               <h3 className="text-sm font-semibold text-slate-700 mb-4">Class-wise Breakdown</h3>
               <div className="h-64">
                 {data.classWise.length ? (
@@ -288,7 +292,7 @@ export default function PerTeacherPage() {
               </div>
             </div>
             {/* Recent Activity */}
-            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm card-hover">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm card-hover">
               <h3 className="text-sm font-semibold text-slate-700 mb-4">Recent Activity</h3>
               <div className="space-y-2 max-h-64 overflow-y-auto scrollbar-thin">
                 {data.recent.length ? (
@@ -330,7 +334,7 @@ export default function PerTeacherPage() {
             <button
               onClick={handleExport}
               disabled={exporting}
-              className="inline-flex items-center gap-2 px-5 py-3 bg-amber-500 text-white rounded-xl text-sm font-medium hover:bg-amber-600 transition-colors disabled:opacity-70 shadow-lg shadow-amber-500/30 hover:shadow-xl hover:shadow-amber-500/30"
+              className="inline-flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl text-sm font-medium hover:from-amber-600 hover:to-orange-600 transition-all disabled:opacity-70 shadow-lg shadow-amber-500/30 hover:shadow-xl hover:shadow-amber-500/40"
             >
               {exporting ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

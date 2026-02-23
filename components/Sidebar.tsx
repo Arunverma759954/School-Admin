@@ -37,10 +37,11 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="w-64 shrink-0 bg-[#1e1b4b] text-slate-200 flex flex-col shadow-xl">
-      <div className="p-6 border-b border-indigo-500/20">
-        <Link href="/" className="text-xl font-bold tracking-tight text-white">
-          SAVRA
+    <aside className="w-64 shrink-0 bg-gradient-to-b from-[#1e1b4b] via-[#25224a] to-[#1e1b4b] text-slate-200 flex flex-col shadow-2xl">
+      <div className="p-6 border-b border-white/10">
+        <Link href="/" className="flex items-center gap-2">
+          <span className="text-xl font-bold tracking-tight text-white">SAVRA</span>
+          <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/30 text-indigo-200 font-medium">Admin</span>
         </Link>
       </div>
       <nav className="flex-1 p-3 space-y-0.5">
@@ -51,9 +52,9 @@ export function Sidebar() {
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                 isActive
-                  ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/25"
+                  ? "bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-500/30"
                   : "text-slate-300 hover:bg-white/10 hover:text-white"
               }`}
             >
@@ -63,10 +64,10 @@ export function Sidebar() {
           );
         })}
       </nav>
-      <div className="p-3 border-t border-indigo-500/20 space-y-1">
+      <div className="p-3 border-t border-white/10 space-y-1">
         <Link
           href="/settings"
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
+          className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
         >
           <Settings className="w-4 h-4 shrink-0" />
           Settings
@@ -74,13 +75,13 @@ export function Sidebar() {
         <button
           type="button"
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-300 hover:bg-red-500/20 hover:text-red-200 transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-slate-300 hover:bg-red-500/20 hover:text-red-200 transition-colors"
         >
           <LogOut className="w-4 h-4 shrink-0" />
           Logout
         </button>
-        <div className="flex items-center gap-3 px-3 py-2.5 mt-2">
-          <div className="w-9 h-9 rounded-full bg-amber-400 flex items-center justify-center text-[#1e1b4b] font-semibold shrink-0">
+        <div className="flex items-center gap-3 px-3 py-3 mt-2 rounded-xl bg-white/5">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center text-[#1e1b4b] font-bold shrink-0 shadow-lg">
             {initial}
           </div>
           <div className="min-w-0">

@@ -15,6 +15,7 @@ import type {
   RecentActivityItem,
 } from "./types";
 import { rawActivities } from "./data";
+import { loadFromExcel } from "./excelLoader";
 
 /**
  * Deduplicate records: same teacher_id, activity_type, created_at, subject, class = one record.
@@ -30,7 +31,14 @@ function deduplicate(records: ActivityRecord[]): ActivityRecord[] {
   });
 }
 
-const activities = deduplicate(rawActivities);
+let _activitiesCache: ActivityRecord[] | null = null;
+function getActivities(): ActivityRecord[] {
+  if (_activitiesCache === null) {
+    const raw = loadFromExcel() ?? rawActivities;
+    _activitiesCache = deduplicate(raw);
+  }
+  return _activitiesCache;
+}
 
 function getRangeDates(range: TimeRange): { start: Date; end: Date } {
   const end = new Date();
@@ -52,7 +60,7 @@ function filterByRange(records: ActivityRecord[], range: TimeRange): ActivityRec
 }
 
 export function getTeacherSummaries(range: TimeRange): TeacherSummary[] {
-  const filtered = filterByRange(activities, range);
+  const filtered = filterByRange(getActivities(), range);
   const byTeacher = new Map<
     string,
     { name: string; lessons: number; quizzes: number; assessments: number; subjects: Set<string>; classes: Set<string> }
@@ -117,7 +125,7 @@ export function getInsightsCards(range: TimeRange): {
 }
 
 export function getWeeklyActivity(range: TimeRange): WeeklyActivityPoint[] {
-  const filtered = filterByRange(activities, range);
+  const filtered = filterByRange(getActivities(), range);
   const days = 7;
   const end = new Date();
   const points: WeeklyActivityPoint[] = [];
@@ -154,7 +162,7 @@ export function getTeacherById(teacherId: string, range: TimeRange): TeacherSumm
 
 /** Class-wise assigned vs completion (assigned = count of activities, completion simulated). */
 export function getClassWiseBreakdown(teacherId: string, range: TimeRange): ClassWiseBreakdown[] {
-  const filtered = filterByRange(activities, range).filter((r) => r.teacher_id === teacherId);
+  const filtered = filterByRange(getActivities(), range).filter((r) => r.teacher_id === teacherId);
   const byClass = new Map<string, { assigned: number; completed: number }>();
 
   for (const r of filtered) {
@@ -179,7 +187,7 @@ export function getClassWiseBreakdown(teacherId: string, range: TimeRange): Clas
 }
 
 export function getRecentActivity(teacherId: string, limit = 10): RecentActivityItem[] {
-  const teacherActivities = activities
+  const teacherActivities = getActivities()
     .filter((r) => r.teacher_id === teacherId)
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, limit);
