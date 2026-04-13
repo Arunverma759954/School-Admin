@@ -291,13 +291,14 @@ const GalleryManager = () => {
                                 <tr key={img._id} className="group hover:bg-slate-50/50 dark:hover:bg-white/5 transition-all duration-300">
                                     <td className="px-8 py-6">
                                         <div className="relative h-20 w-32 rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm group-hover:shadow-xl transition-all group-hover:-translate-y-1">
-                                            <img 
                                                 src={img.src && (img.src.startsWith('http') || img.src.startsWith('data:')) 
                                                     ? img.src 
                                                     : encodeURI(img.src.startsWith('/uploads/Gallery/') 
                                                         ? `${WEBSITE_URL}${img.src.replace('/uploads/Gallery/', '/Gallery/')}`
                                                         : img.src.startsWith('/uploads/') 
-                                                            ? `${API_IMAGE_URL}${img.src}`
+                                                            ? (!img.src.replace('/uploads/', '').startsWith('gallery_') && !img.src.replace('/uploads/', '').startsWith('image_'))
+                                                                ? `${WEBSITE_URL}${img.src.replace('/uploads/', '/')}`
+                                                                : `${API_IMAGE_URL}${img.src}`
                                                             : `${API_IMAGE_URL}${img.src.startsWith('/') ? '' : '/'}${img.src}`)} 
                                                 alt={img.alt} 
                                                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
@@ -493,7 +494,9 @@ const GalleryManager = () => {
                                         : encodeURI(editingImage.src.startsWith('/uploads/Gallery/') 
                                             ? `${WEBSITE_URL}${editingImage.src.replace('/uploads/Gallery/', '/Gallery/')}`
                                             : editingImage.src.startsWith('/uploads/') 
-                                                ? `${API_IMAGE_URL}${editingImage.src}`
+                                                ? (!editingImage.src.replace('/uploads/', '').startsWith('gallery_') && !editingImage.src.replace('/uploads/', '').startsWith('image_'))
+                                                    ? `${WEBSITE_URL}${editingImage.src.replace('/uploads/', '/')}`
+                                                    : `${API_IMAGE_URL}${editingImage.src}`
                                                 : `${API_IMAGE_URL}${editingImage.src.startsWith('/') ? '' : '/'}${editingImage.src}`)} 
                                     className="w-full h-full object-cover" 
                                     alt="Preview" 
@@ -572,7 +575,9 @@ const GalleryManager = () => {
                                      : encodeURI(selectedImg.src.startsWith('/uploads/Gallery/') 
                                          ? `${WEBSITE_URL}${selectedImg.src.replace('/uploads/Gallery/', '/Gallery/')}`
                                          : selectedImg.src.startsWith('/uploads/') 
-                                             ? `${API_IMAGE_URL}${selectedImg.src}`
+                                             ? (!selectedImg.src.replace('/uploads/', '').startsWith('gallery_') && !selectedImg.src.replace('/uploads/', '').startsWith('image_'))
+                                                 ? `${WEBSITE_URL}${selectedImg.src.replace('/uploads/', '/')}`
+                                                 : `${API_IMAGE_URL}${selectedImg.src}`
                                              : `${API_IMAGE_URL}${selectedImg.src.startsWith('/') ? '' : '/'}${selectedImg.src}`)} 
                                 alt={selectedImg.alt} 
                                 className="relative max-h-[70vh] max-w-full rounded-[3rem] shadow-[0_0_100px_rgba(255,255,255,0.1)] object-contain border-4 border-white/10 animate-in zoom-in-95 duration-1000"
