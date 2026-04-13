@@ -83,8 +83,12 @@ export const getTCs = async (req, res) => {
 export const searchTC = async (req, res) => {
     const { admissionNo } = req.params;
     try {
+        const query = admissionNo.trim();
         const tc = await TC.findOne({ 
-            admissionNo: { $regex: new RegExp(`^${admissionNo}$`, "i") } 
+            $or: [
+                { admissionNo: { $regex: new RegExp(`^${query}$`, "i") } },
+                { studentName: { $regex: new RegExp(`^${query}$`, "i") } }
+            ]
         });
         if (tc) {
             res.json(tc);

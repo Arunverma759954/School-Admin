@@ -267,7 +267,7 @@ const GalleryManager = () => {
                                                     : encodeURI(img.src.startsWith('/uploads/Gallery/') 
                                                         ? `${WEBSITE_URL}${img.src.replace('/uploads/Gallery/', '/Gallery/')}`
                                                         : img.src.startsWith('/uploads/') 
-                                                            ? `${WEBSITE_URL}${img.src.replace('/uploads/', '/')}`
+                                                            ? `${API_IMAGE_URL}${img.src}`
                                                             : `${API_IMAGE_URL}${img.src.startsWith('/') ? '' : '/'}${img.src}`)} 
                                                 alt={img.alt} 
                                                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
@@ -447,7 +447,7 @@ const GalleryManager = () => {
                                      : encodeURI(selectedImg.src.startsWith('/uploads/Gallery/') 
                                          ? `${WEBSITE_URL}${selectedImg.src.replace('/uploads/Gallery/', '/Gallery/')}`
                                          : selectedImg.src.startsWith('/uploads/') 
-                                             ? `${WEBSITE_URL}${selectedImg.src.replace('/uploads/', '/')}`
+                                             ? `${API_IMAGE_URL}${selectedImg.src}`
                                              : `${API_IMAGE_URL}${selectedImg.src.startsWith('/') ? '' : '/'}${selectedImg.src}`)} 
                                 alt={selectedImg.alt} 
                                 className="relative max-h-[70vh] max-w-full rounded-[3rem] shadow-[0_0_100px_rgba(255,255,255,0.1)] object-contain border-4 border-white/10 animate-in zoom-in-95 duration-1000"
