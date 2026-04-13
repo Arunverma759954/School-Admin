@@ -264,11 +264,11 @@ const GalleryManager = () => {
                                             <img 
                                                 src={img.src && (img.src.startsWith('http') || img.src.startsWith('data:')) 
                                                     ? img.src 
-                                                    : img.src.startsWith('/uploads/Gallery/') 
+                                                    : encodeURI(img.src.startsWith('/uploads/Gallery/') 
                                                         ? `${WEBSITE_URL}${img.src.replace('/uploads/Gallery/', '/Gallery/')}`
                                                         : img.src.startsWith('/uploads/') 
                                                             ? `${WEBSITE_URL}${img.src.replace('/uploads/', '/')}`
-                                                            : `${API_IMAGE_URL}${img.src.startsWith('/') ? '' : '/'}${img.src}`} 
+                                                            : `${API_IMAGE_URL}${img.src.startsWith('/') ? '' : '/'}${img.src}`)} 
                                                 alt={img.alt} 
                                                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                                 loading="lazy"
@@ -441,14 +441,14 @@ const GalleryManager = () => {
                     <div className="max-w-7xl w-full h-full flex flex-col items-center justify-center gap-12">
                         <div className="relative group">
                             <div className="absolute -inset-4 bg-white/10 rounded-[3.5rem] blur-3xl opacity-0 group-hover:opacity-100 transition duration-700"></div>
-                            <img 
-                                src={selectedImg.src && (selectedImg.src.startsWith('http') || selectedImg.src.startsWith('data:')) 
-                                    ? selectedImg.src 
-                                    : selectedImg.src.startsWith('/uploads/Gallery/') 
-                                        ? `${WEBSITE_URL}${selectedImg.src.replace('/uploads/Gallery/', '/Gallery/')}`
-                                        : selectedImg.src.startsWith('/uploads/') 
-                                            ? `${WEBSITE_URL}${selectedImg.src.replace('/uploads/', '/')}`
-                                            : `${API_IMAGE_URL}${selectedImg.src.startsWith('/') ? '' : '/'}${selectedImg.src}`} 
+                             <img 
+                                 src={selectedImg.src && (selectedImg.src.startsWith('http') || selectedImg.src.startsWith('data:')) 
+                                     ? selectedImg.src 
+                                     : encodeURI(selectedImg.src.startsWith('/uploads/Gallery/') 
+                                         ? `${WEBSITE_URL}${selectedImg.src.replace('/uploads/Gallery/', '/Gallery/')}`
+                                         : selectedImg.src.startsWith('/uploads/') 
+                                             ? `${WEBSITE_URL}${selectedImg.src.replace('/uploads/', '/')}`
+                                             : `${API_IMAGE_URL}${selectedImg.src.startsWith('/') ? '' : '/'}${selectedImg.src}`)} 
                                 alt={selectedImg.alt} 
                                 className="relative max-h-[70vh] max-w-full rounded-[3rem] shadow-[0_0_100px_rgba(255,255,255,0.1)] object-contain border-4 border-white/10 animate-in zoom-in-95 duration-1000"
                             />

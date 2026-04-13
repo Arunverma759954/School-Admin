@@ -223,9 +223,9 @@ const TCManager = () => {
                                                     <img 
                                                         src={tc.imageFile.startsWith('http') 
                                                             ? tc.imageFile 
-                                                            : tc.imageFile.startsWith('/uploads/') 
+                                                            : encodeURI(tc.imageFile.startsWith('/uploads/') 
                                                                 ? `${WEBSITE_URL}${tc.imageFile.replace('/uploads/', '/')}`
-                                                                : `${API_IMAGE_URL}${tc.imageFile.startsWith('/') ? '' : '/'}${tc.imageFile}`} 
+                                                                : `${API_IMAGE_URL}${tc.imageFile.startsWith('/') ? '' : '/'}${tc.imageFile}`)} 
                                                         className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" 
                                                         alt={tc.studentName}
                                                         onError={(e) => {
@@ -332,9 +332,9 @@ const TCManager = () => {
                                         <img 
                                             src={editTC.imageFile.startsWith('http') 
                                                 ? editTC.imageFile 
-                                                : editTC.imageFile.startsWith('/uploads/') 
+                                                : encodeURI(editTC.imageFile.startsWith('/uploads/') 
                                                     ? `${WEBSITE_URL}${editTC.imageFile.replace('/uploads/', '/')}`
-                                                    : `${API_IMAGE_URL}${editTC.imageFile.startsWith('/') ? '' : '/'}${editTC.imageFile}`} 
+                                                    : `${API_IMAGE_URL}${editTC.imageFile.startsWith('/') ? '' : '/'}${editTC.imageFile}`)} 
                                             className="w-full h-full object-cover" 
                                         />
                                     ) : (
