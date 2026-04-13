@@ -1,0 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+
+:root {
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+@theme {
+  --color-boxdark: #1a0000;
+  --color-boxdark-2: #2d0000;
+  --color-bodydark: #AEB7C0;
+  --color-bodydark1: #DEE4EE;
+  --color-bodydark2: #8A99AF;
+  --color-primary: #8B0000;
+  --color-secondary: #FFD700;
+  --color-accent: #E5E4E2;
+  --color-stroke: #E2E8F0;
+  --color-strokedark: #1A222C;
+  --color-meta-2: #EFF2F7;
+  --color-meta-4: #313D4A;
+}
