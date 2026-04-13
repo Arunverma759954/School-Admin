@@ -137,10 +137,12 @@ const TCManager = () => {
         }
     };
 
-    const filteredTCs = tcs.filter(tc => 
-        tc.studentName.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        tc.admissionNo.includes(searchQuery)
-    );
+    const filteredTCs = tcs.filter(tc => {
+        const name = tc?.studentName || '';
+        const adm = tc?.admissionNo || '';
+        const search = searchQuery?.toLowerCase() || '';
+        return name.toLowerCase().includes(search) || adm.toLowerCase().includes(search);
+    });
 
     return (
         <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-5 duration-700 pb-20">
@@ -219,7 +221,7 @@ const TCManager = () => {
                                     <td className="px-10 py-6">
                                         <div className="flex items-center gap-5">
                                             <div className="h-16 w-16 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-white/10 overflow-hidden shrink-0 group-hover:shadow-xl transition-all group-hover:-translate-y-1 relative">
-                                                {tc.imageFile ? (
+                                                {tc?.imageFile ? (
                                                     <img 
                                                         src={tc.imageFile.startsWith('http') 
                                                             ? tc.imageFile 
@@ -227,7 +229,7 @@ const TCManager = () => {
                                                                 ? `${WEBSITE_URL}${tc.imageFile.replace('/uploads/', '/')}`
                                                                 : `${API_IMAGE_URL}${tc.imageFile.startsWith('/') ? '' : '/'}${tc.imageFile}`)} 
                                                         className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" 
-                                                        alt={tc.studentName}
+                                                        alt={tc?.studentName || 'Student'}
                                                         onError={(e) => {
                                                             e.target.style.display = 'none';
                                                             const iconDiv = document.createElement('div');
