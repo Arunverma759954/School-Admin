@@ -1,5 +1,5 @@
 import express from 'express';
-import { getGallery, addGallery, deleteGallery } from '../controllers/galleryController.js';
+import { getGallery, addGallery, deleteGallery, updateGallery } from '../controllers/galleryController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 import upload from '../middleware/uploadMiddleware.js';
 
@@ -10,6 +10,7 @@ router.route('/')
     .post(protect, admin, upload.single('image'), addGallery);
 
 router.route('/:id')
+    .put(protect, admin, updateGallery)
     .delete(protect, admin, deleteGallery);
 
 export default router;

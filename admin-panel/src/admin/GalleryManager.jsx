@@ -7,10 +7,8 @@ import {
   X, 
   Upload,
   CheckCircle2,
-  AlertCircle,
-  RefreshCw,
-  Clock,
-  Search
+  Search,
+  Edit
 } from 'lucide-react';
 import { useAuth } from '../hooks/AuthContext';
 
@@ -26,6 +24,8 @@ const GalleryManager = () => {
     
     // Upload Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingImage, setEditingImage] = useState(null);
     const [newImageData, setNewImageData] = useState({ alt: '', category: 'General' });
     const [previewUrl, setPreviewUrl] = useState('');
     const [filterCategory, setFilterCategory] = useState('All');
@@ -144,6 +144,36 @@ const GalleryManager = () => {
             console.error("Upload failed:", error);
             setIsUploading(false);
             addNotification('Network error during upload', 'error');
+        }
+    const handleUpdate = async () => {
+        setIsUploading(true);
+        try {
+            const res = await fetch(`${API_URL}/${editingImage._id}`, {
+                method: 'PUT',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user?.token}`
+                },
+                body: JSON.stringify({
+                    alt: editingImage.alt,
+                    category: editingImage.category
+                })
+            });
+
+            const data = await res.json();
+            setIsUploading(false);
+            if (res.ok) {
+                setImages(prev => prev.map(img => img._id === data._id ? data : img));
+                setIsEditModalOpen(false);
+                setEditingImage(null);
+                addNotification('Asset metadata updated successfully');
+            } else {
+                addNotification(data.message || 'Update failed', 'error');
+            }
+        } catch (error) {
+            console.error("Update failed:", error);
+            setIsUploading(false);
+            addNotification('Network error during update', 'error');
         }
     };
 
@@ -302,17 +332,27 @@ const GalleryManager = () => {
                                         </div>
                                     </td>
                                     <td className="px-8 py-6 text-right">
-                                        <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-4 group-hover:translate-x-0 duration-300">
+                                        <div className="flex items-center justify-end gap-3 transition-opacity">
+                                            <button 
+                                                onClick={() => {
+                                                    setEditingImage(img);
+                                                    setIsEditModalOpen(true);
+                                                }}
+                                                className="p-3 bg-white dark:bg-slate-800 text-sky-600 rounded-xl hover:bg-sky-600 hover:text-white transition-all shadow-sm active:scale-95 border border-slate-100 dark:border-slate-800"
+                                                title="Edit Asset"
+                                            >
+                                                <Edit size={16} />
+                                            </button>
                                             <button 
                                                 onClick={() => setSelectedImg(img)}
-                                                className="p-3 bg-white dark:bg-slate-800 text-sky-600 rounded-xl hover:bg-sky-600 hover:text-white transition-all shadow-sm active:scale-95"
+                                                className="p-3 bg-white dark:bg-slate-800 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition-all shadow-sm active:scale-95 border border-slate-100 dark:border-slate-800"
                                                 title="Full Preview"
                                             >
                                                 <Maximize2 size={16} />
                                             </button>
                                             <button 
                                                 onClick={() => handleDelete(img._id)}
-                                                className="p-3 bg-white dark:bg-slate-800 text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm active:scale-95"
+                                                className="p-3 bg-white dark:bg-slate-800 text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm active:scale-95 border border-slate-100 dark:border-slate-800"
                                                 title="Delete Asset"
                                             >
                                                 <Trash2 size={16} />
@@ -421,6 +461,91 @@ const GalleryManager = () => {
                                     <>
                                         <CheckCircle2 size={16} />
                                         COMMIT TO CLOUD
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
+            {/* Edit Modal */}
+            {isEditModalOpen && editingImage && (
+                <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+                    <div 
+                        className="absolute inset-0 bg-slate-950/80 backdrop-blur-xl animate-in fade-in duration-500"
+                        onClick={() => setIsEditModalOpen(false)}
+                    ></div>
+                    <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl shadow-2xl relative z-10 overflow-hidden animate-in zoom-in slide-in-from-bottom-20 duration-500 border border-white/10">
+                        <div className="bg-slate-50/50 dark:bg-slate-800/50 px-8 py-6 border-b border-slate-100 dark:border-slate-800">
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-4">
+                                <span className="p-3 bg-sky-600 rounded-xl text-white shadow-lg"><Edit size={24} /></span>
+                                Edit Asset Record
+                            </h3>
+                            <p className="text-slate-500 mt-1 font-bold uppercase tracking-[0.2em] text-[8px] opacity-60">Update live production metadata</p>
+                        </div>
+
+                        <div className="p-8 space-y-8">
+                            <div className="relative aspect-video rounded-3xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm">
+                                <img 
+                                    src={editingImage.src && (editingImage.src.startsWith('http') || editingImage.src.startsWith('data:')) 
+                                        ? editingImage.src 
+                                        : encodeURI(editingImage.src.startsWith('/uploads/Gallery/') 
+                                            ? `${WEBSITE_URL}${editingImage.src.replace('/uploads/Gallery/', '/Gallery/')}`
+                                            : editingImage.src.startsWith('/uploads/') 
+                                                ? `${API_IMAGE_URL}${editingImage.src}`
+                                                : `${API_IMAGE_URL}${editingImage.src.startsWith('/') ? '' : '/'}${editingImage.src}`)} 
+                                    className="w-full h-full object-cover" 
+                                    alt="Preview" 
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Media Label</label>
+                                    <input 
+                                        type="text" 
+                                        className="w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl px-5 py-4 font-bold text-[13px] text-slate-900 dark:text-white outline-none focus:border-sky-600 transition-all"
+                                        value={editingImage.alt}
+                                        onChange={(e) => setEditingImage({...editingImage, alt: e.target.value})}
+                                    />
+                                </div>
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Sector Category</label>
+                                    <select 
+                                        className="w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl px-5 py-4 font-bold text-[13px] text-slate-900 dark:text-white outline-none focus:border-sky-600 transition-all cursor-pointer appearance-none"
+                                        value={editingImage.category}
+                                        onChange={(e) => setEditingImage({...editingImage, category: e.target.value})}
+                                    >
+                                        {categories.filter(c => c !== 'All').map(cat => (
+                                            <option key={cat} value={cat}>{cat.toUpperCase()}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="px-8 py-6 bg-slate-50/50 dark:bg-slate-800/50 flex gap-4 border-t border-slate-100 dark:border-slate-800">
+                            <button 
+                                onClick={() => setIsEditModalOpen(false)}
+                                className="flex-1 bg-white dark:bg-slate-900 text-slate-400 font-bold py-4 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all border border-slate-200 dark:border-slate-700 tracking-widest text-[10px]"
+                            >
+                                CANCEL
+                            </button>
+                            <button 
+                                onClick={handleUpdate}
+                                disabled={isUploading || !editingImage.alt}
+                                className="flex-[2] bg-sky-600 hover:bg-sky-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 border-b-4 border-sky-800 tracking-widest text-[10px]"
+                            >
+                                {isUploading ? (
+                                    <>
+                                        <RefreshCw className="animate-spin" size={16} />
+                                        UPDATING...
+                                    </>
+                                ) : (
+                                    <>
+                                        <CheckCircle2 size={16} />
+                                        UPDATE ASSET
                                     </>
                                 )}
                             </button>

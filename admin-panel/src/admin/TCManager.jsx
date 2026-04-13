@@ -225,9 +225,11 @@ const TCManager = () => {
                                                     <img 
                                                         src={tc.imageFile.startsWith('http') 
                                                             ? tc.imageFile 
-                                                            : encodeURI(tc.imageFile.startsWith('/uploads/') 
-                                                                ? `${API_IMAGE_URL}${tc.imageFile}`
-                                                                : `${API_IMAGE_URL}${tc.imageFile.startsWith('/') ? '' : '/'}${tc.imageFile}`)} 
+                                                            : encodeURI(tc.imageFile.startsWith('/uploads/Gallery/') 
+                                                                ? `${WEBSITE_URL}${tc.imageFile.replace('/uploads/Gallery/', '/Gallery/')}`
+                                                                : tc.imageFile.startsWith('/uploads/') 
+                                                                    ? `${API_IMAGE_URL}${tc.imageFile}`
+                                                                    : `${API_IMAGE_URL}${tc.imageFile.startsWith('/') ? '' : '/'}${tc.imageFile}`)} 
                                                         className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" 
                                                         alt={tc?.studentName || 'Student'}
                                                         onError={(e) => {
@@ -276,18 +278,18 @@ const TCManager = () => {
                                         </div>
                                     </td>
                                     <td className="px-10 py-6 text-right">
-                                        <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-4 group-hover:translate-x-0 duration-300">
+                                        <div className="flex items-center justify-end gap-3 transition-opacity">
                                             <button 
                                                 onClick={() => openEditModal(tc)}
-                                                className="p-3.5 bg-white dark:bg-slate-800 text-[#8B0000] rounded-xl hover:bg-[#8B0000] hover:text-white transition-all shadow-sm active:scale-95 border border-slate-100 dark:border-slate-700"
+                                                className="p-3.5 bg-white dark:bg-slate-800 text-sky-600 rounded-xl hover:bg-sky-600 hover:text-white transition-all shadow-sm active:scale-95 border border-slate-100 dark:border-slate-700"
                                                 title="Edit Record"
                                             >
                                                 <Edit size={16} />
                                             </button>
                                             <button 
                                                 onClick={() => handleDelete(tc._id)}
-                                                className="p-3.5 bg-white dark:bg-slate-800 text-rose-500 rounded-xl hover:bg-rose-500 hover:text-white transition-all shadow-sm active:scale-95 border border-slate-100 dark:border-slate-700"
-                                                title="Delete Permanent"
+                                                className="p-3.5 bg-white dark:bg-slate-800 text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm active:scale-95 border border-slate-100 dark:border-slate-700"
+                                                title="Delete Record"
                                             >
                                                 <Trash2 size={16} />
                                             </button>
@@ -336,9 +338,11 @@ const TCManager = () => {
                                         <img 
                                             src={editTC.imageFile.startsWith('http') 
                                                 ? editTC.imageFile 
-                                                : encodeURI(editTC.imageFile.startsWith('/uploads/') 
-                                                    ? `${API_IMAGE_URL}${editTC.imageFile}`
-                                                    : `${API_IMAGE_URL}${editTC.imageFile.startsWith('/') ? '' : '/'}${editTC.imageFile}`)} 
+                                                : encodeURI(editTC.imageFile.startsWith('/uploads/Gallery/') 
+                                                    ? `${WEBSITE_URL}${editTC.imageFile.replace('/uploads/Gallery/', '/Gallery/')}`
+                                                    : editTC.imageFile.startsWith('/uploads/') 
+                                                        ? `${API_IMAGE_URL}${editTC.imageFile}`
+                                                        : `${API_IMAGE_URL}${editTC.imageFile.startsWith('/') ? '' : '/'}${editTC.imageFile}`)} 
                                             className="w-full h-full object-cover" 
                                         />
                                     ) : (

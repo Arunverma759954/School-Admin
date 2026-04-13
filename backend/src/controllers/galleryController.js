@@ -89,4 +89,26 @@ const deleteGallery = async (req, res) => {
     }
 };
 
-export { getGallery, addGallery, deleteGallery };
+// @desc    Update gallery image
+// @route   PUT /api/gallery/:id
+// @access  Private/Admin
+const updateGallery = async (req, res) => {
+    try {
+        const { alt, category } = req.body;
+        const image = await Gallery.findById(req.params.id);
+
+        if (image) {
+            image.alt = alt || image.alt;
+            image.category = category || image.category;
+
+            const updatedImage = await image.save();
+            res.json(updatedImage);
+        } else {
+            res.status(404).json({ message: 'Image not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
+export { getGallery, addGallery, deleteGallery, updateGallery };
