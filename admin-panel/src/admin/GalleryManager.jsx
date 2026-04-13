@@ -148,6 +148,8 @@ const GalleryManager = () => {
             setIsUploading(false);
             addNotification('Network error during upload', 'error');
         }
+    };
+
     const handleUpdate = async () => {
         setIsUploading(true);
         try {
