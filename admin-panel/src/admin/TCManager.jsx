@@ -221,7 +221,11 @@ const TCManager = () => {
                                             <div className="h-16 w-16 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-white/10 overflow-hidden shrink-0 group-hover:shadow-xl transition-all group-hover:-translate-y-1 relative">
                                                 {tc.imageFile ? (
                                                     <img 
-                                                        src={tc.imageFile.startsWith('http') ? tc.imageFile : `${API_IMAGE_URL}${tc.imageFile.startsWith('/') ? '' : '/'}${tc.imageFile}`} 
+                                                        src={tc.imageFile.startsWith('http') 
+                                                            ? tc.imageFile 
+                                                            : tc.imageFile.startsWith('/uploads/') 
+                                                                ? `${WEBSITE_URL}${tc.imageFile.replace('/uploads/', '/')}`
+                                                                : `${API_IMAGE_URL}${tc.imageFile.startsWith('/') ? '' : '/'}${tc.imageFile}`} 
                                                         className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" 
                                                         alt={tc.studentName}
                                                         onError={(e) => {
@@ -326,7 +330,11 @@ const TCManager = () => {
                                         <img src={tcPreview} className="w-full h-full object-cover" />
                                     ) : (editTC?.imageFile) ? (
                                         <img 
-                                            src={editTC.imageFile.startsWith('http') ? editTC.imageFile : `${API_IMAGE_URL}${editTC.imageFile.startsWith('/') ? '' : '/'}${editTC.imageFile}`} 
+                                            src={editTC.imageFile.startsWith('http') 
+                                                ? editTC.imageFile 
+                                                : editTC.imageFile.startsWith('/uploads/') 
+                                                    ? `${WEBSITE_URL}${editTC.imageFile.replace('/uploads/', '/')}`
+                                                    : `${API_IMAGE_URL}${editTC.imageFile.startsWith('/') ? '' : '/'}${editTC.imageFile}`} 
                                             className="w-full h-full object-cover" 
                                         />
                                     ) : (
