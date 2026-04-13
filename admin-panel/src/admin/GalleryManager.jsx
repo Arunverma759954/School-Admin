@@ -291,6 +291,7 @@ const GalleryManager = () => {
                                 <tr key={img._id} className="group hover:bg-slate-50/50 dark:hover:bg-white/5 transition-all duration-300">
                                     <td className="px-8 py-6">
                                         <div className="relative h-20 w-32 rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm group-hover:shadow-xl transition-all group-hover:-translate-y-1">
+                                            <img 
                                                 src={img.src && (img.src.startsWith('http') || img.src.startsWith('data:')) 
                                                     ? img.src 
                                                     : encodeURI(img.src.startsWith('/uploads/Gallery/') 
