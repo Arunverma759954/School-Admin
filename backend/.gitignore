@@ -1,6 +1,5 @@
 node_modules/
 .env
-# uploads/   <-- Removed to allow gallery images to be deployed
-/src/uploads/*
-!/src/uploads/Gallery/
+# Allow all static school assets to be pushed to Render
+!/src/uploads/
 .DS_Store
