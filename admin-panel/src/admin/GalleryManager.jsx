@@ -163,21 +163,32 @@ const GalleryManager = () => {
         }
     };
 
+    const handleEditFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setPreviewUrl(URL.createObjectURL(file));
+            setEditingImage({ ...editingImage, newFile: file });
+        }
+    };
+
     const handleUpdate = async () => {
         if (!editingImage) return;
         setIsUploading(true);
-        console.log("Updating gallery asset:", editingImage._id, editingImage.alt);
         try {
+            const formData = new FormData();
+            formData.append('alt', editingImage.alt);
+            formData.append('category', editingImage.category);
+            
+            if (editingImage.newFile) {
+                formData.append('image', editingImage.newFile);
+            }
+
             const res = await fetch(`${API_URL}/${editingImage._id}`, {
                 method: 'PUT',
                 headers: { 
-                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${user?.token}`
                 },
-                body: JSON.stringify({
-                    alt: editingImage.alt,
-                    category: editingImage.category
-                })
+                body: formData
             });
 
             const data = await res.json();
@@ -185,7 +196,8 @@ const GalleryManager = () => {
                 setImages(prev => prev.map(img => img._id === data._id ? data : img));
                 setIsEditModalOpen(false);
                 setEditingImage(null);
-                addNotification('Asset metadata updated successfully', 'success');
+                setPreviewUrl('');
+                addNotification('Asset updated successfully', 'success');
             } else {
                 addNotification(data.message || 'Update failed', 'error');
             }
@@ -485,12 +497,26 @@ const GalleryManager = () => {
                         </div>
 
                         <div className="p-8 space-y-8">
-                            <div className="relative aspect-video rounded-3xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm">
+                            <div 
+                                className="relative aspect-video rounded-3xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm group cursor-pointer"
+                                onClick={() => document.getElementById('edit-gallery-file-input').click()}
+                            >
                                 <img 
-                                    src={getImageUrl(editingImage.src)} 
-                                    className="w-full h-full object-cover" 
+                                    src={previewUrl || getImageUrl(editingImage.src)} 
+                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
                                     alt="Preview" 
                                     onError={(e) => getFallbackImageUrl(e, editingImage.src)}
+                                />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white gap-2">
+                                    <Camera size={32} />
+                                    <span className="text-[10px] font-bold uppercase tracking-widest">Change Photo</span>
+                                </div>
+                                <input 
+                                    type="file" 
+                                    id="edit-gallery-file-input" 
+                                    className="hidden" 
+                                    accept="image/*"
+                                    onChange={handleEditFileChange}
                                 />
                             </div>
 
