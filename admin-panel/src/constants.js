@@ -8,23 +8,13 @@ export const getImageUrl = (src) => {
     
     let path = src;
     
-    // Normalize path: if it starts with /uploads/Gallery/, it's a website static asset
-    if (path.startsWith('/uploads/Gallery/')) {
-        path = path.replace('/uploads/Gallery/', '/Gallery/');
+    // Normalize path: everything in the database should be treated as arriving from the backend's /uploads
+    // If it already has /uploads/, leave it. If not, add it.
+    if (!path.startsWith('/uploads/')) {
+        path = `/uploads${path.startsWith('/') ? '' : '/'}${path}`;
     }
 
-    // Rule 1: Static Gallery images are on the Website domain
-    if (path.startsWith('/Gallery/')) {
-        return `${WEBSITE_URL}${path}`;
-    }
-
-    // Rule 2: Uploaded files are on the Backend domain
-    if (path.startsWith('/uploads/')) {
-        return `${API_IMAGE_URL}${path}`;
-    }
-
-    // Rule 3: Fallback for filename only
-    return `${WEBSITE_URL}/Gallery/${path}`;
+    return `${API_IMAGE_URL}${path}`;
 };
 
 console.log('Final API_BASE_URL resolved to:', API_BASE_URL);
