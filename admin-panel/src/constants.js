@@ -20,8 +20,8 @@ export const getImageUrl = (src) => {
 // Error handler for images to try fallbacks
 export const getFallbackImageUrl = (e, src) => {
     const fallbacks = [
-        'https://school-web-sandy.vercel.app',
         'https://school-web-rho-drab.vercel.app',
+        'https://school-web-sandy.vercel.app',
         'https://school-web-alpha.vercel.app',
         'https://school-web.vercel.app'
     ];
