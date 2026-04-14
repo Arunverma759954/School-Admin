@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import {
     FileText,
     Plus,
     Trash2,
@@ -25,6 +25,8 @@ const TCManager = () => {
     const [editTC, setEditTC] = useState(null);
     const [selectedFile, setSelectedFile] = useState(null);
     const [tcPreview, setTcPreview] = useState(null);
+    const [deleteId, setDeleteId] = useState(null);
+    const [notifications, setNotifications] = useState([]);
     const { user } = useAuth();
     const API_URL = `${API_BASE_URL}/tc`;
 
@@ -53,18 +55,22 @@ const TCManager = () => {
 
             const res = await fetch(API_URL, {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Authorization': `Bearer ${user?.token}`
                 },
                 body: formData
             });
             if (res.ok) {
                 const data = await res.json();
-                setTcs(prev => [...prev, data]);
+                setTcs(prev => [data, ...prev]);
                 closeModal();
+                addNotification('TC Certificate issued successfully');
+            } else {
+                addNotification('Failed to issue certificate', 'error');
             }
         } catch (err) {
             console.error("Failed to create TC:", err);
+            addNotification('Network error', 'error');
         }
     };
 
@@ -81,7 +87,7 @@ const TCManager = () => {
 
             const res = await fetch(`${API_URL}/${editTC._id}`, {
                 method: 'PUT',
-                headers: { 
+                headers: {
                     'Authorization': `Bearer ${user?.token}`
                 },
                 body: formData
@@ -90,26 +96,50 @@ const TCManager = () => {
                 const data = await res.json();
                 setTcs(prev => prev.map(tc => tc._id === data._id ? data : tc));
                 closeModal();
+                addNotification('Record updated successfully');
+            } else {
+                addNotification('Failed to update record', 'error');
             }
         } catch (err) {
             console.error("Failed to update TC:", err);
+            addNotification('Network error', 'error');
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Delete this TC record permanently?')) return;
+    const handleDelete = async () => {
+        const idToDelete = deleteId;
+        if (!idToDelete) return;
+        
+        console.log("Initiating final removal for ID:", idToDelete);
+        
         try {
-            const res = await fetch(`${API_URL}/${id}`, {
+            const res = await fetch(`${API_URL}/${idToDelete}`, {
                 method: 'DELETE',
                 headers: { 
                     'Authorization': `Bearer ${user?.token}`
                 }
             });
-            if (res.ok) {
-                setTcs(prev => prev.filter(tc => tc._id !== id));
+            
+            if (res.ok || res.status === 404) {
+                // If it's 200 or 404 (already gone), we clean up
+                setTcs(prev => prev.filter(tc => String(tc._id) !== String(idToDelete)));
+                setDeleteId(null);
+                
+                if (res.ok) addNotification('Record removed from registry');
+                else addNotification('Sync error: Record already removed', 'info');
+
+                // Force a clean reload to sync everything
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
+            } else {
+                const errorData = await res.json().catch(() => ({}));
+                addNotification(errorData.message || 'Server rejected removal', 'error');
+                setDeleteId(null); // Close modal anyway to prevent stuck UI
             }
         } catch (err) {
-            console.error("Failed to delete TC:", err);
+            console.error("Delete operation failed:", err);
+            addNotification('Network error. Record remains.', 'error');
         }
     };
 
@@ -159,30 +189,30 @@ const TCManager = () => {
                                 V4.2.0-PRO
                             </span>
                         </div>
-                        <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight uppercase leading-none">
+                        <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase leading-none">
                             Certificate <span className="text-[#8B0000]">Registry</span>
                         </h2>
-                        <p className="text-slate-400 font-medium uppercase tracking-[0.2em] text-[9px] mt-2">Institutional document control console</p>
+                        <p className="text-slate-400 font-bold uppercase tracking-[0.3em] text-[7px] mt-2 opacity-60">Secured institutional record management system</p>
                     </div>
-                    
+
                     <div className="flex flex-col sm:flex-row items-center gap-3">
                         <div className="relative group/search w-full sm:w-auto">
-                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within/search:text-[#8B0000] transition-colors" size={16} />
-                            <input 
-                                type="text" 
+                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within/search:text-sky-600 transition-colors" size={16} />
+                            <input
+                                type="text"
                                 placeholder="Search Name/Admin..."
-                                className="w-full sm:w-64 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl pl-12 pr-6 py-3.5 font-bold text-[10px] text-slate-900 dark:text-white uppercase tracking-widest outline-none focus:border-[#8B0000] transition-all shadow-inner"
+                                className="w-full sm:w-64 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl pl-12 pr-6 py-3.5 font-bold text-[10px] text-slate-900 dark:text-white uppercase tracking-widest outline-none focus:border-sky-600 transition-all shadow-inner"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
                         </div>
-                        <button 
+                        <button
                             onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 setIsModalOpen(true);
                             }}
-                            className="w-full sm:w-auto flex items-center justify-center gap-3 bg-[#8B0000] hover:bg-red-950 text-white px-8 py-3.5 rounded-xl font-bold text-[10px] tracking-widest shadow-lg shadow-rose-100 dark:shadow-none transition-all active:scale-95 group border-b-4 border-red-950 relative z-20"
+                            className="w-full sm:w-auto flex items-center justify-center gap-3 bg-[#8B0000] hover:bg-red-900 text-white px-8 py-3.5 rounded-xl font-bold text-[10px] tracking-widest shadow-lg shadow-rose-100 dark:shadow-none transition-all active:scale-95 group border-b-4 border-red-950 relative z-20"
                         >
                             <Plus size={16} className="group-hover:rotate-90 transition-transform" />
                             TC UPLOAD
@@ -193,11 +223,11 @@ const TCManager = () => {
 
             {/* Quick Stats Summary */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center gap-5 shadow-sm">
-                    <div className="h-12 w-12 rounded-xl bg-[#8B0000]/10 text-[#8B0000] flex items-center justify-center border border-[#8B0000]/10"><GraduationCap size={24} /></div>
+                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center gap-4 shadow-sm">
+                    <div className="h-10 w-10 rounded-xl bg-rose-50 text-[#8B0000] flex items-center justify-center border border-rose-100"><GraduationCap size={20} /></div>
                     <div>
-                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Total Issued</p>
-                        <p className="text-2xl font-bold text-slate-900 dark:text-white mt-0.5">{tcs.length}</p>
+                        <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Total Issued</p>
+                        <p className="text-xl font-extrabold text-slate-900 dark:text-white mt-0.5">{tcs.length}</p>
                     </div>
                 </div>
             </div>
@@ -216,23 +246,29 @@ const TCManager = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
-                            {filteredTCs.map((tc) => (
-                                <tr key={tc._id} className="group hover:bg-slate-50/50 dark:hover:bg-white/5 transition-all duration-300">
+                            {filteredTCs.map((tc, index) => (
+                                <tr 
+                                    key={tc._id} 
+                                    className="group hover:bg-slate-50/50 dark:hover:bg-white/5 transition-all duration-300 animate-in fade-in slide-in-from-left-4"
+                                    style={{ animationDelay: `${index * 50}ms` }}
+                                >
                                     <td className="px-10 py-6">
                                         <div className="flex items-center gap-5">
                                             <div className="h-16 w-16 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-white/10 overflow-hidden shrink-0 group-hover:shadow-xl transition-all group-hover:-translate-y-1 relative">
                                                 {tc?.imageFile ? (
-                                                    <img 
-                                                        src={tc.imageFile.startsWith('http') 
-                                                            ? tc.imageFile 
-                                                            : encodeURI(tc.imageFile.startsWith('/uploads/Gallery/') 
-                                                                ? `${WEBSITE_URL}${tc.imageFile.replace('/uploads/Gallery/', '/Gallery/')}`
-                                                                : tc.imageFile.startsWith('/uploads/') 
-                                                                    ? `${API_IMAGE_URL}${tc.imageFile}`
-                                                                    : (!tc.imageFile.startsWith('/') && !tc.imageFile.includes('/'))
-                                                                        ? `${WEBSITE_URL}/Gallery/TC/${tc.imageFile}`
-                                                                        : `${API_IMAGE_URL}${tc.imageFile.startsWith('/') ? '' : '/'}${tc.imageFile}`)} 
-                                                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" 
+                                                    <img
+                                                        src={(() => {
+                                                            if (!tc.imageFile) return '';
+                                                            if (tc.imageFile.startsWith('http') || tc.imageFile.startsWith('data:')) return tc.imageFile;
+                                                            let path = tc.imageFile;
+                                                            if (path.startsWith('/uploads/Gallery/TC/')) {
+                                                                path = path.replace('/uploads/Gallery/TC/', '/Gallery/TC/');
+                                                            }
+                                                            return encodeURI(path.startsWith('/')
+                                                                ? `${API_IMAGE_URL}${path}`
+                                                                : `${API_IMAGE_URL}/Gallery/TC/${path}`);
+                                                        })()}
+                                                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
                                                         alt={tc?.studentName || 'Student'}
                                                         onError={(e) => {
                                                             e.target.style.display = 'none';
@@ -243,13 +279,15 @@ const TCManager = () => {
                                                         }}
                                                     />
                                                 ) : (
-                                                    <div className="h-full w-full flex items-center justify-center text-slate-400"><User size={24} /></div>
+                                                    <div className="absolute inset-0 flex items-center justify-center text-slate-300">
+                                                        <FileText size={20} />
+                                                    </div>
                                                 )}
                                             </div>
                                             <div>
-                                                <p className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-tighter group-hover:text-[#8B0000] transition-colors">{tc?.studentName || 'Unknown Student'}</p>
-                                                <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest flex items-center gap-1 mt-1">
-                                                    <CheckCircle2 size={10} /> Digital Verification Active
+                                                <p className="text-[14px] font-semibold text-slate-700 dark:text-white uppercase tracking-normal group-hover:text-[#8B0000] transition-colors">{tc?.studentName || 'Unknown Student'}</p>
+                                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1 mt-1 opacity-70">
+                                                    <CheckCircle2 size={10} className="text-emerald-500" /> Digital Verification
                                                 </span>
                                             </div>
                                         </div>
@@ -258,7 +296,7 @@ const TCManager = () => {
                                         <div className="flex flex-col gap-1.5">
                                             <div className="flex items-center gap-2">
                                                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest py-0.5 px-2 bg-slate-100 dark:bg-slate-800 rounded-md">ADM</span>
-                                                <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{tc?.admissionNo || 'N/A'}</span>
+                                                <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 tracking-wide">{tc?.admissionNo || 'N/A'}</span>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest py-0.5 px-2 bg-slate-100 dark:bg-slate-800 rounded-md">CERT</span>
@@ -267,33 +305,33 @@ const TCManager = () => {
                                         </div>
                                     </td>
                                     <td className="px-10 py-6">
-                                        <span className="inline-flex items-center px-4 py-2 rounded-xl bg-[#8B0000]/5 text-[#8B0000] text-[10px] font-bold uppercase tracking-widest border border-[#8B0000]/10">
+                                        <span className="inline-flex items-center px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest border border-slate-100 dark:border-slate-700">
                                             {tc?.className || 'General'}
                                         </span>
                                     </td>
                                     <td className="px-10 py-6">
                                         <div className="flex flex-col">
-                                            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                                            <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 tracking-wide">
                                                 {tc?.issueDate ? new Date(tc.issueDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}
                                             </span>
-                                            <span className="text-[9px] font-bold text-slate-300 dark:text-slate-600 uppercase tracking-widest mt-0.5 whitespace-nowrap">Authorized Entry</span>
+                                            <span className="text-[8px] font-bold text-slate-300 dark:text-slate-600 uppercase tracking-[0.2em] mt-1 whitespace-nowrap">Authorized Entry</span>
                                         </div>
                                     </td>
                                     <td className="px-10 py-6 text-right">
                                         <div className="flex items-center justify-end gap-3 transition-opacity">
-                                            <button 
+                                            <button
                                                 onClick={() => openEditModal(tc)}
-                                                className="p-3.5 bg-white dark:bg-slate-800 text-sky-600 rounded-xl hover:bg-sky-600 hover:text-white transition-all shadow-sm active:scale-95 border border-slate-100 dark:border-slate-700"
+                                                className="p-3.5 bg-white dark:bg-slate-800 text-[#8B0000] rounded-xl hover:bg-[#8B0000] hover:text-white transition-all shadow-sm active:scale-95 border border-slate-100 dark:border-slate-700"
                                                 title="Edit Record"
                                             >
                                                 <Edit size={16} />
                                             </button>
-                                            <button 
-                                                onClick={() => handleDelete(tc._id)}
-                                                className="p-3.5 bg-white dark:bg-slate-800 text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm active:scale-95 border border-slate-100 dark:border-slate-700"
+                                            <button
+                                                onClick={() => setDeleteId(tc._id)}
+                                                className="p-3 bg-white dark:bg-slate-800 text-rose-600 rounded-lg hover:bg-rose-600 hover:text-white transition-all shadow-sm active:scale-95 border border-slate-100 dark:border-slate-700"
                                                 title="Delete Record"
                                             >
-                                                <Trash2 size={16} />
+                                                <Trash2 size={14} />
                                             </button>
                                         </div>
                                     </td>
@@ -311,137 +349,148 @@ const TCManager = () => {
                 </div>
             </div>
 
-            {/* Modal - Moved to Bottom Level of Return */}
+            {/* Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-xl animate-in fade-in duration-500" onClick={closeModal} />
-                    <div className="relative bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in slide-in-from-bottom-20 duration-500 border border-white/10">
-                        <div className="bg-slate-50/50 dark:bg-slate-800/50 px-8 py-6 border-b border-slate-100 dark:border-slate-800">
-                             <div className="flex justify-between items-center">
-                                <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-4 uppercase tracking-tighter">
-                                    <span className="p-3 bg-[#8B0000] rounded-xl text-white shadow-lg"><FileText size={24} /></span>
-                                    {editTC ? 'Modify Record' : 'Registry Entry'}
-                                </h3>
-                                <button onClick={closeModal} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all">
-                                    <X size={20} className="text-slate-400" />
-                                </button>
-                             </div>
-                            <p className="text-slate-500 mt-1 font-bold uppercase tracking-[0.2em] text-[8px] opacity-60">Academic transition authorization system</p>
+                    <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-300" onClick={closeModal} />
+                    <div className="relative bg-white dark:bg-slate-900 w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in slide-in-from-bottom-10 duration-500 border border-slate-200 dark:border-slate-800">
+                        <div className="px-8 py-6 border-b border-slate-50 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30">
+                            <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-3 uppercase tracking-tight">
+                                <div className="p-2 bg-sky-600 rounded-lg text-white"><FileText size={18} /></div>
+                                {editTC ? 'Edit Certificate' : 'New Registry'}
+                            </h3>
+                            <button onClick={closeModal} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-all">
+                                <X size={18} className="text-slate-400" />
+                            </button>
                         </div>
 
-                        <form onSubmit={editTC ? handleUpdate : handleCreate} className="p-8 space-y-6">
+                        <form onSubmit={editTC ? handleUpdate : handleCreate} className="p-8 pb-10 space-y-6">
                             {/* Photo Upload Area */}
-                            <div className="flex items-center gap-6 p-5 bg-slate-50/50 dark:bg-slate-800/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 group/upload cursor-pointer hover:border-[#8B0000] transition-colors"
-                                 onClick={() => document.getElementById('studentPhoto')?.click()}>
-                                <div className="h-20 w-20 rounded-xl bg-white dark:bg-slate-900 border-2 overflow-hidden flex items-center justify-center text-slate-200 shadow-inner">
+                            <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 cursor-pointer hover:border-sky-500 transition-colors group"
+                                onClick={() => document.getElementById('studentPhoto')?.click()}>
+                                <div className="h-16 w-16 rounded-xl bg-white dark:bg-slate-900 border overflow-hidden flex items-center justify-center text-slate-300">
                                     {tcPreview ? (
                                         <img src={tcPreview} className="w-full h-full object-cover" />
                                     ) : (editTC?.imageFile) ? (
-                                        <img 
-                                            src={editTC.imageFile.startsWith('http') 
-                                                ? editTC.imageFile 
-                                                : encodeURI(editTC.imageFile.startsWith('/uploads/Gallery/') 
-                                                    ? `${WEBSITE_URL}${editTC.imageFile.replace('/uploads/Gallery/', '/Gallery/')}`
-                                                    : editTC.imageFile.startsWith('/uploads/') 
-                                                        ? `${API_IMAGE_URL}${editTC.imageFile}`
-                                                        : (!editTC.imageFile.startsWith('/') && !editTC.imageFile.includes('/'))
-                                                            ? `${WEBSITE_URL}/Gallery/TC/${editTC.imageFile}`
-                                                            : `${API_IMAGE_URL}${editTC.imageFile.startsWith('/') ? '' : '/'}${editTC.imageFile}`)} 
-                                            className="w-full h-full object-cover" 
+                                        <img
+                                            src={(() => {
+                                                if (!editTC.imageFile) return '';
+                                                if (editTC.imageFile.startsWith('http') || editTC.imageFile.startsWith('data:')) return editTC.imageFile;
+                                                let path = editTC.imageFile;
+                                                if (path.startsWith('/uploads/Gallery/TC/')) {
+                                                    path = path.replace('/uploads/Gallery/TC/', '/Gallery/TC/');
+                                                }
+                                                return encodeURI(path.startsWith('/')
+                                                    ? `${API_IMAGE_URL}${path}`
+                                                    : `${API_IMAGE_URL}/Gallery/TC/${path}`);
+                                            })()}
+                                            className="w-full h-full object-cover"
                                         />
                                     ) : (
-                                        <ImageIcon size={28} />
+                                        <ImageIcon size={20} />
                                     )}
                                 </div>
                                 <div className="flex-1">
-                                    <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#8B0000]">Student Identification</p>
-                                    <p className="text-[10px] font-bold text-slate-400 mt-0.5 leading-tight">Upload verified portrait for registry verification (JPG/PNG)</p>
-                                    <input 
-                                        type="file" 
-                                        accept="image/*" 
-                                        onChange={handleFileChange}
-                                        className="hidden" 
-                                        id="studentPhoto" 
+                                    <p className="text-[8px] font-black uppercase tracking-widest text-sky-600">Student Portrait</p>
+                                    <p className="text-[10px] text-slate-400 font-bold mt-0.5">Click to select photo</p>
+                                    <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" id="studentPhoto" />
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 ml-1">Student Full Name</label>
+                                    <input
+                                        type="text"
+                                        className="w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-50 dark:border-slate-700 rounded-xl px-4 py-3 font-bold text-[12px] text-slate-900 dark:text-white outline-none focus:border-sky-600 transition-all"
+                                        value={editTC ? editTC.studentName : newTC.studentName}
+                                        onChange={(e) => editTC ? setEditTC({ ...editTC, studentName: e.target.value }) : setNewTC({ ...newTC, studentName: e.target.value })}
+                                        required
                                     />
                                 </div>
-                            </div>
 
-                            <div className="space-y-5">
-                                <div className="space-y-2">
-                                     <label className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Full Student Name (Primary Record)</label>
-                                     <input 
-                                         type="text" 
-                                         className="w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl px-5 py-4 font-bold text-[13px] text-slate-900 dark:text-white outline-none focus:border-[#8B0000] transition-all"
-                                         placeholder="Ex: ARUN VERMA"
-                                         value={editTC ? editTC.studentName : newTC.studentName}
-                                         onChange={(e) => editTC ? setEditTC({...editTC, studentName: e.target.value}) : setNewTC({...newTC, studentName: e.target.value})}
-                                         required
-                                     />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-6 text-left">
-                                    <div className="space-y-2">
-                                        <label className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Admission No</label>
-                                        <input 
-                                            type="text" 
-                                            className="w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl px-5 py-4 font-bold text-[13px] text-slate-900 dark:text-white outline-none focus:border-[#8B0000]"
-                                            placeholder="ADM-0000"
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 ml-1">Admission No</label>
+                                        <input
+                                            type="text"
+                                            className="w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-50 dark:border-slate-700 rounded-xl px-4 py-3 font-bold text-[12px] text-slate-900 dark:text-white outline-none focus:border-sky-600"
                                             value={editTC ? editTC.admissionNo : newTC.admissionNo}
-                                            onChange={(e) => editTC ? setEditTC({...editTC, admissionNo: e.target.value}) : setNewTC({...newTC, admissionNo: e.target.value})}
+                                            onChange={(e) => editTC ? setEditTC({ ...editTC, admissionNo: e.target.value }) : setNewTC({ ...newTC, admissionNo: e.target.value })}
                                             required
                                         />
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Class Division</label>
-                                        <input 
-                                            type="text" 
-                                            className="w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl px-5 py-4 font-bold text-[13px] text-slate-900 dark:text-white outline-none focus:border-[#8B0000]"
-                                            placeholder="IX-A / XII-Science"
+                                    <div className="space-y-1.5">
+                                        <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 ml-1">Class/Grade</label>
+                                        <input
+                                            type="text"
+                                            className="w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-50 dark:border-slate-700 rounded-xl px-4 py-3 font-bold text-[12px] text-slate-900 dark:text-white outline-none focus:border-sky-600"
                                             value={editTC ? editTC.className : newTC.className}
-                                            onChange={(e) => editTC ? setEditTC({...editTC, className: e.target.value}) : setNewTC({...newTC, className: e.target.value})}
+                                            onChange={(e) => editTC ? setEditTC({ ...editTC, className: e.target.value }) : setNewTC({ ...newTC, className: e.target.value })}
                                             required
                                         />
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-6 text-left">
-                                    <div className="space-y-2">
-                                        <label className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Authorization Date</label>
-                                        <input 
-                                            type="date" 
-                                            className="w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl px-5 py-4 font-bold text-[13px] text-slate-900 dark:text-white outline-none focus:border-[#8B0000]"
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 ml-1">Issue Date</label>
+                                        <input
+                                            type="date"
+                                            className="w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-50 dark:border-slate-700 rounded-xl px-4 py-3 font-bold text-[12px] text-slate-900 dark:text-white outline-none focus:border-sky-600"
                                             value={editTC ? editTC.issueDate : newTC.issueDate}
-                                            onChange={(e) => editTC ? setEditTC({...editTC, issueDate: e.target.value}) : setNewTC({...newTC, issueDate: e.target.value})}
+                                            onChange={(e) => editTC ? setEditTC({ ...editTC, issueDate: e.target.value }) : setNewTC({ ...newTC, issueDate: e.target.value })}
                                             required
                                         />
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">TC Serial No</label>
-                                        <input 
-                                            type="text" 
-                                            className="w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl px-5 py-4 font-bold text-[13px] text-slate-900 dark:text-white outline-none focus:border-[#8B0000]"
-                                            placeholder="TC/2026/0XXX"
+                                    <div className="space-y-1.5">
+                                        <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 ml-1">Serial No</label>
+                                        <input
+                                            type="text"
+                                            className="w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-50 dark:border-slate-700 rounded-xl px-4 py-3 font-bold text-[12px] text-slate-900 dark:text-white outline-none focus:border-sky-600"
                                             value={editTC ? editTC.tcNumber : newTC.tcNumber}
-                                            onChange={(e) => editTC ? setEditTC({...editTC, tcNumber: e.target.value}) : setNewTC({...newTC, tcNumber: e.target.value})}
+                                            onChange={(e) => editTC ? setEditTC({ ...editTC, tcNumber: e.target.value }) : setNewTC({ ...newTC, tcNumber: e.target.value })}
                                             required
                                         />
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="flex gap-4 mt-4">
-                                <button 
-                                    type="button"
-                                    onClick={closeModal}
-                                    className="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold py-4 rounded-xl hover:bg-slate-200 transition-all tracking-widest text-[10px]"
-                                >
-                                    ABORT
-                                </button>
-                                <button type="submit" className="flex-[2] bg-[#8B0000] hover:bg-black text-white font-bold py-4 rounded-xl shadow-lg transition-all active:scale-[0.98] border-b-4 border-red-950 tracking-widest text-[10px]">
-                                    {editTC ? 'COMMIT CHANGES' : 'AUTHORIZE & ISSUE'}
+                            <div className="flex gap-4 pt-2">
+                                <button type="button" onClick={closeModal} className="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-500 font-black py-4 rounded-2xl hover:bg-slate-200 transition-all text-[10px] uppercase tracking-widest">Cancel</button>
+                                <button type="submit" className="flex-[2] bg-sky-600 hover:bg-sky-700 text-white font-black py-4 rounded-2xl shadow-xl transition-all active:scale-[0.98] text-[10px] uppercase tracking-widest border-b-4 border-sky-800">
+                                    {editTC ? 'Update Record' : 'Issue Certificate'}
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Notification Toasts */}
+            <div className="fixed bottom-6 right-6 z-[10000] flex flex-col gap-2">
+                {notifications.map(n => (
+                    <div key={n.id} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl shadow-xl border animate-in slide-in-from-right-10 duration-500 bg-white dark:bg-slate-900 ${n.type === 'error' ? 'border-rose-500/20 text-rose-500' : 'border-sky-500/20 text-sky-600'}`}>
+                        {n.type === 'error' ? <AlertCircle size={14} /> : <CheckCircle2 size={14} />}
+                        <span className="text-[10px] font-black uppercase tracking-wider">{n.message}</span>
+                    </div>
+                ))}
+            </div>
+
+            {/* Custom Delete Confirmation Modal */}
+            {deleteId && (
+                <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setDeleteId(null)} />
+                    <div className="relative bg-white dark:bg-slate-900 w-full max-w-[280px] rounded-[1.5rem] shadow-2xl overflow-hidden animate-in zoom-in slide-in-from-bottom-5 duration-300 border border-slate-100 dark:border-slate-800 p-6 text-center">
+                        <div className="w-12 h-12 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-rose-100">
+                            <Trash2 size={20} />
+                        </div>
+                        <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight mb-1">Delete Record?</h4>
+                        <p className="text-[10px] text-slate-400 font-bold mb-6">This action cannot be undone.</p>
+                        <div className="flex gap-3">
+                            <button onClick={() => setDeleteId(null)} className="flex-1 px-4 py-2.5 bg-slate-50 text-slate-400 font-black rounded-xl text-[9px] uppercase tracking-widest hover:bg-slate-100 transition-all">No</button>
+                            <button onClick={handleDelete} className="flex-1 px-4 py-2.5 bg-rose-600 text-white font-black rounded-xl text-[9px] uppercase tracking-widest hover:bg-rose-700 shadow-lg shadow-rose-200 transition-all">Yes</button>
+                        </div>
                     </div>
                 </div>
             )}

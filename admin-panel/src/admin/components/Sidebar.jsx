@@ -70,8 +70,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                     {/* CORE ADMINISTRATION */}
                     <div>
                         <h3 className="mb-4 px-3 text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-600 flex items-center gap-2">
-                             <div className="h-1 w-1 rounded-full bg-rose-600"></div>
-                             Administrative Core
+                            <div className="h-1 w-1 rounded-full bg-rose-600"></div>
+                            Administrative Core
                         </h3>
                         <ul className="flex flex-col gap-1.5">
                             <li>
@@ -98,8 +98,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                     {/* ACADEMIC RECORDS */}
                     <div>
                         <h3 className="mb-4 px-3 text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-600 flex items-center gap-2">
-                             <div className="h-1 w-1 rounded-full bg-blue-500"></div>
-                             Academic Records
+                            <div className="h-1 w-1 rounded-full bg-[#8B0000]"></div>
+                            Academic Records
                         </h3>
                         <ul className="flex flex-col gap-1.5">
                             <li>
@@ -126,8 +126,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                     {/* MANAGEMENT Group */}
                     <div>
                         <h3 className="mb-4 px-3 text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-600 flex items-center gap-2">
-                             <div className="h-1 w-1 rounded-full bg-emerald-500"></div>
-                             Operations Tools
+                            <div className="h-1 w-1 rounded-full bg-rose-600"></div>
+                            Operations Tools
                         </h3>
                         <ul className="flex flex-col gap-1.5">
                             <li>
@@ -149,25 +149,23 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
             {/* Sidebar Footer - Clean Logout */}
             <div className="mt-auto p-6 border-t border-slate-100 dark:border-slate-900 bg-white dark:bg-slate-950">
-                <button 
+                <button
                     onClick={handleLogout}
                     disabled={isLoggingOut}
-                    className={`w-full group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${
-                        isLoggingOut 
-                        ? 'bg-rose-50 text-rose-600' 
+                    className={`w-full group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${isLoggingOut
+                        ? 'bg-rose-50 text-rose-600'
                         : 'text-slate-500 hover:bg-rose-50 hover:text-rose-600 hover:shadow-sm'
-                    }`}
+                        }`}
                 >
-                    <div className={`p-2 rounded-lg transition-all duration-300 ${
-                        isLoggingOut ? 'bg-rose-100' : 'bg-slate-50 group-hover:bg-rose-100 dark:bg-slate-900 border border-slate-100 dark:border-slate-800'
-                    }`}>
+                    <div className={`p-2 rounded-lg transition-all duration-300 ${isLoggingOut ? 'bg-rose-100' : 'bg-slate-50 group-hover:bg-rose-100 dark:bg-slate-900 border border-slate-100 dark:border-slate-800'
+                        }`}>
                         <LogOut size={16} className={isLoggingOut ? 'animate-pulse' : ''} />
                     </div>
                     <span className="font-bold uppercase tracking-widest text-[9px]">
                         {isLoggingOut ? 'Terminating...' : 'Secure Logout'}
                     </span>
                 </button>
-                
+
                 <div className="mt-4 text-center">
                     <p className="text-[7px] font-bold text-slate-300 dark:text-slate-800 uppercase tracking-[0.3em] leading-relaxed">
                         SJCS-MANAGEMENT-PRO-V4

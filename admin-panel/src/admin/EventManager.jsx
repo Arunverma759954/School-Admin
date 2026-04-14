@@ -19,6 +19,7 @@ const EventManager = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editEvent, setEditEvent] = useState(null);
     const [newEvent, setNewEvent] = useState({ title: '', date: '', location: 'School Campus', description: '', category: 'General' });
+    const [deleteId, setDeleteId] = useState(null);
     const { user } = useAuth();
     const API_URL = `${API_BASE_URL}/events`;
 
@@ -82,20 +83,32 @@ const EventManager = () => {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Delete this event permanently?')) return;
+    const confirmDelete = async () => {
+        const idToDelete = deleteId;
+        if (!idToDelete) return;
+        
         try {
-            const res = await fetch(`${API_URL}/${id}`, {
+            const res = await fetch(`${API_URL}/${idToDelete}`, {
                 method: 'DELETE',
                 headers: { 
                     'Authorization': `Bearer ${user?.token}`
                 }
             });
-            if (res.ok) {
-                setEvents(prev => prev.filter(event => event._id !== id));
+            
+            if (res.ok || res.status === 404) {
+                setEvents(prev => prev.filter(event => String(event._id) !== String(idToDelete)));
+                setDeleteId(null);
+                
+                // Force sync
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
+            } else {
+                setDeleteId(null);
             }
         } catch (err) {
-            console.error("Failed to delete event:", err);
+            console.error("Delete failed:", err);
+            setDeleteId(null);
         }
     };
 
@@ -173,7 +186,7 @@ const EventManager = () => {
                                 <tr key={event._id} className="group hover:bg-slate-50/50 dark:hover:bg-white/5 transition-all duration-300">
                                     <td className="px-8 py-6">
                                         <div className="flex flex-col">
-                                            <span className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-tight group-hover:text-[#8B0000] transition-colors">{event.title}</span>
+                                            <span className="text-[14px] font-semibold text-slate-700 dark:text-white uppercase tracking-normal group-hover:text-[#8B0000] transition-colors">{event.title}</span>
                                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 opacity-60">ID: {event._id.slice(-6).toUpperCase()}</span>
                                         </div>
                                     </td>
@@ -196,14 +209,14 @@ const EventManager = () => {
                                     </td>
                                     <td className="px-8 py-6 text-right">
                                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                                            <button 
+                                             <button 
                                                 onClick={() => openEditModal(event)}
-                                                className="p-3 bg-white dark:bg-slate-800 text-sky-600 rounded-xl hover:bg-sky-600 hover:text-white transition-all shadow-sm active:scale-95 border border-slate-100 dark:border-slate-700"
+                                                className="p-3 bg-white dark:bg-slate-800 text-[#8B0000] rounded-xl hover:bg-[#8B0000] hover:text-white transition-all shadow-sm active:scale-95 border border-slate-100 dark:border-slate-700"
                                             >
                                                 <Edit size={16} />
                                             </button>
                                             <button 
-                                                onClick={() => handleDelete(event._id)}
+                                                onClick={() => setDeleteId(event._id)}
                                                 className="p-3 bg-white dark:bg-slate-800 text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm active:scale-95 border border-slate-100 dark:border-slate-700"
                                             >
                                                 <Trash2 size={16} />
@@ -314,6 +327,26 @@ const EventManager = () => {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+            {/* Delete Confirmation Modal */}
+            {deleteId && (
+                <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setDeleteId(null)} />
+                    <div className="relative bg-white dark:bg-slate-900 w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-10 duration-500 border border-white/20">
+                        <div className="p-10 text-center">
+                            <div className="h-20 w-20 bg-rose-50 dark:bg-rose-500/10 rounded-full flex items-center justify-center mx-auto mb-8 animate-bounce">
+                                <Trash2 size={32} className="text-rose-600" />
+                            </div>
+                            <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter mb-4">Confirm Deletion?</h3>
+                            <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-10 leading-relaxed">This record will be permanently purged from the registry.</p>
+                            
+                            <div className="flex gap-4">
+                                <button onClick={() => setDeleteId(null)} className="flex-1 px-8 py-4 bg-slate-50 dark:bg-slate-800 text-slate-400 font-bold rounded-2xl text-[10px] uppercase tracking-[0.2em] hover:bg-slate-100 transition-all">Cancel</button>
+                                <button onClick={confirmDelete} className="flex-1 px-8 py-4 bg-[#8B0000] text-white font-bold rounded-2xl text-[10px] uppercase tracking-[0.2em] hover:bg-red-700 shadow-xl shadow-rose-200/20 transition-all active:scale-95">Purge Now</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

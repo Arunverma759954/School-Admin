@@ -32,6 +32,7 @@ const GalleryManager = () => {
     const [newImageData, setNewImageData] = useState({ alt: '', category: 'General' });
     const [previewUrl, setPreviewUrl] = useState('');
     const [filterCategory, setFilterCategory] = useState('All');
+    const [deleteId, setDeleteId] = useState(null);
 
     const API_URL = `${API_BASE_URL}/gallery`;
 
@@ -68,25 +69,37 @@ const GalleryManager = () => {
         }, 3000);
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Delete this media permanently from the database?')) return;
+    const handleDelete = async () => {
+        const idToDelete = deleteId;
+        if (!idToDelete) return;
         
         try {
-            const res = await fetch(`${API_URL}/${id}`, {
+            const res = await fetch(`${API_URL}/${idToDelete}`, {
                 method: 'DELETE',
-                headers: {
+                headers: { 
                     'Authorization': `Bearer ${user?.token}`
                 }
             });
             
-            if (res.ok) {
-                setImages(prev => prev.filter(img => img._id !== id));
-                addNotification('Media removed successfully');
+            if (res.ok || res.status === 404) {
+                setImages(prev => prev.filter(img => String(img._id) !== String(idToDelete)));
+                setDeleteId(null);
+                
+                if (res.ok) addNotification('Gallery asset removed');
+                else addNotification('Asset already removed', 'info');
+
+                // Force sync
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
             } else {
-                throw new Error('Failed to delete');
+                addNotification('Server rejected deletion', 'error');
+                setDeleteId(null);
             }
         } catch (error) {
-            addNotification('Delete operation failed', 'error');
+            console.error("Gallery delete error:", error);
+            addNotification('Delete failed. Please try again.', 'error');
+            setDeleteId(null);
         }
     };
 
@@ -227,10 +240,10 @@ const GalleryManager = () => {
                                 V3.2.0-PRO
                             </span>
                         </div>
-                        <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight uppercase">
+                        <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">
                             Media <span className="text-[#8B0000]">Directory</span>
                         </h2>
-                        <p className="text-slate-400 font-medium uppercase tracking-[0.2em] text-[9px] mt-1.5">Administrative Asset Control System</p>
+                        <p className="text-slate-400 font-bold uppercase tracking-[0.3em] text-[7px] mt-1.5 opacity-60">Professional Asset Management Console</p>
                     </div>
                     
                     <div className="flex items-center gap-3">
@@ -297,15 +310,20 @@ const GalleryManager = () => {
                                     <td className="px-8 py-6">
                                         <div className="relative h-20 w-32 rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm group-hover:shadow-xl transition-all group-hover:-translate-y-1">
                                             <img 
-                                                src={img.src && (img.src.startsWith('http') || img.src.startsWith('data:')) 
-                                                    ? img.src 
-                                                    : encodeURI(img.src.startsWith('/uploads/Gallery/') 
-                                                        ? `${WEBSITE_URL}${img.src.replace('/uploads/Gallery/', '/Gallery/')}`
-                                                        : img.src.startsWith('/uploads/') 
-                                                            ? (!img.src.replace('/uploads/', '').startsWith('gallery_') && !img.src.replace('/uploads/', '').startsWith('image_'))
-                                                                ? `${WEBSITE_URL}${img.src.replace('/uploads/', '/')}`
-                                                                : `${API_IMAGE_URL}${img.src}`
-                                                            : `${API_IMAGE_URL}${img.src.startsWith('/') ? '' : '/'}${img.src}`)} 
+                                                src={(() => {
+                                                    if (!img.src) return '';
+                                                    if (img.src.startsWith('http') || img.src.startsWith('data:')) return img.src;
+                                                    let path = img.src;
+                                                    // Note: We keep /uploads/Gallery/ as is if it exists in uploads, 
+                                                    // but for safety we map it to /Gallery/ if it's a known static file
+                                                    // In our case, the backend serves public at / so /Gallery/ works.
+                                                    if (path.startsWith('/uploads/Gallery/')) {
+                                                        path = path.replace('/uploads/Gallery/', '/Gallery/');
+                                                    }
+                                                    return encodeURI(path.startsWith('/') 
+                                                        ? `${API_IMAGE_URL}${path}` 
+                                                        : `${API_IMAGE_URL}/Gallery/${path}`);
+                                                })()} 
                                                 alt={img.alt} 
                                                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                                 loading="lazy"
@@ -323,7 +341,7 @@ const GalleryManager = () => {
                                     </td>
                                     <td className="px-8 py-6">
                                         <div className="flex flex-col">
-                                            <span className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-tight group-hover:text-[#8B0000] transition-colors">{img.alt || 'Unnamed Document'}</span>
+                                            <span className="text-[14px] font-semibold text-slate-700 dark:text-white uppercase tracking-normal group-hover:text-[#8B0000] transition-colors">{img.alt || 'Unnamed Document'}</span>
                                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">UUID: {img._id.slice(-8)}</span>
                                         </div>
                                     </td>
@@ -345,7 +363,7 @@ const GalleryManager = () => {
                                                     setEditingImage(img);
                                                     setIsEditModalOpen(true);
                                                 }}
-                                                className="p-3 bg-white dark:bg-slate-800 text-sky-600 rounded-xl hover:bg-sky-600 hover:text-white transition-all shadow-sm active:scale-95 border border-slate-100 dark:border-slate-800"
+                                                className="p-3 bg-white dark:bg-slate-800 text-[#8B0000] rounded-xl hover:bg-[#8B0000] hover:text-white transition-all shadow-sm active:scale-95 border border-slate-100 dark:border-slate-800"
                                                 title="Edit Asset"
                                             >
                                                 <Edit size={16} />
@@ -358,7 +376,7 @@ const GalleryManager = () => {
                                                 <Maximize2 size={16} />
                                             </button>
                                             <button 
-                                                onClick={() => handleDelete(img._id)}
+                                                onClick={() => setDeleteId(img._id)}
                                                 className="p-3 bg-white dark:bg-slate-800 text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm active:scale-95 border border-slate-100 dark:border-slate-800"
                                                 title="Delete Asset"
                                             >
@@ -383,59 +401,52 @@ const GalleryManager = () => {
             {/* Upload Modal (Redesigned) */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
-                    <div 
-                        className="absolute inset-0 bg-slate-950/80 backdrop-blur-xl animate-in fade-in duration-500"
-                        onClick={() => setIsModalOpen(false)}
-                    ></div>
-                    <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl shadow-2xl relative z-10 overflow-hidden animate-in zoom-in slide-in-from-bottom-20 duration-500 border border-white/10">
-                        <div className="bg-slate-50/50 dark:bg-slate-800/50 px-8 py-6 border-b border-slate-100 dark:border-slate-800">
-                            <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-4">
-                                <span className="p-3 bg-[#8B0000] rounded-xl text-white shadow-lg"><Upload size={24} /></span>
-                                Publish Asset
+                    <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setIsModalOpen(false)} />
+                    <div className="relative bg-white dark:bg-slate-900 w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in slide-in-from-bottom-10 duration-500 border border-slate-200 dark:border-slate-800">
+                        <div className="px-8 py-6 border-b border-slate-50 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30">
+                            <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-3 uppercase tracking-tight">
+                                <div className="p-2 bg-[#8B0000] rounded-lg text-white"><Upload size={18} /></div>
+                                New Asset
                             </h3>
-                            <p className="text-slate-500 mt-1 font-bold uppercase tracking-[0.2em] text-[8px] opacity-60">Asset deployment to live production</p>
+                            <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-all">
+                                <X size={18} className="text-slate-400" />
+                            </button>
                         </div>
 
-                        <div className="p-8 space-y-8">
+                        <div className="p-8 pb-10 space-y-6">
                             <div 
-                                className="relative aspect-video rounded-3xl overflow-hidden bg-slate-100 dark:bg-slate-900 border-2 border-dashed border-slate-200 dark:border-slate-800 shadow-inner group cursor-pointer hover:border-[#8B0000] transition-all"
+                                className="relative aspect-video rounded-3xl overflow-hidden bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 group cursor-pointer hover:border-sky-500 transition-all font-sans"
                                 onClick={triggerFileSelect}
                             >
                                 {previewUrl ? (
                                     <>
                                         <img src={previewUrl} className="w-full h-full object-cover" alt="Preview" />
-                                        <div className="absolute inset-0 bg-[#8B0000]/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center duration-500">
-                                            <span className="bg-white text-black px-8 py-3 rounded-full font-bold text-[10px] uppercase tracking-widest shadow-2xl">Change Image</span>
+                                        <div className="absolute inset-0 bg-[#8B0000]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center duration-300">
+                                            <span className="bg-white text-[#8B0000] px-6 py-2 rounded-full font-black text-[9px] uppercase tracking-widest shadow-xl">Change</span>
                                         </div>
                                     </>
                                 ) : (
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 gap-4">
-                                        <div className="p-6 bg-white dark:bg-slate-800 rounded-2xl shadow-sm group-hover:scale-110 transition-transform">
-                                            <ImageIcon size={48} className="text-[#8B0000]" />
-                                        </div>
-                                        <div className="text-center">
-                                            <p className="font-bold text-xs uppercase tracking-widest">Select Gallery Image</p>
-                                            <p className="text-[10px] mt-1 opacity-60">JPG, PNG or WEBP (Standard Ratio)</p>
-                                        </div>
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-300 gap-2">
+                                        <ImageIcon size={32} />
+                                        <p className="font-black text-[9px] uppercase tracking-widest">Select Media</p>
                                     </div>
                                 )}
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-3">
-                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Media Label</label>
+                            <div className="space-y-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest px-1">Label Name</label>
                                     <input 
                                         type="text" 
-                                        placeholder="Ex: Graduation 2026"
-                                        className="w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl px-5 py-4 font-bold text-[13px] text-slate-900 dark:text-white outline-none focus:border-[#8B0000] transition-all"
+                                        className="w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-50 dark:border-slate-700 rounded-xl px-4 py-3 font-bold text-[12px] text-slate-900 dark:text-white outline-none focus:border-[#8B0000] transition-all"
                                         value={newImageData.alt}
                                         onChange={(e) => setNewImageData({...newImageData, alt: e.target.value})}
                                     />
                                 </div>
-                                <div className="space-y-3">
-                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Sector Category</label>
+                                <div className="space-y-1.5">
+                                    <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest px-1">Category Sector</label>
                                     <select 
-                                        className="w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl px-5 py-4 font-bold text-[13px] text-slate-900 dark:text-white outline-none focus:border-[#8B0000] transition-all cursor-pointer appearance-none"
+                                        className="w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-50 dark:border-slate-700 rounded-xl px-4 py-3 font-bold text-[12px] text-slate-900 dark:text-white outline-none focus:border-[#8B0000] transition-all cursor-pointer appearance-none"
                                         value={newImageData.category}
                                         onChange={(e) => setNewImageData({...newImageData, category: e.target.value})}
                                     >
@@ -445,32 +456,13 @@ const GalleryManager = () => {
                                     </select>
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="px-8 py-6 bg-slate-50/50 dark:bg-slate-800/50 flex gap-4 border-t border-slate-100 dark:border-slate-800">
-                            <button 
-                                onClick={() => setIsModalOpen(false)}
-                                className="flex-1 bg-white dark:bg-slate-900 text-slate-400 font-bold py-4 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all border border-slate-200 dark:border-slate-700 tracking-widest text-[10px]"
-                            >
-                                DISCARD
-                            </button>
-                            <button 
-                                onClick={handlePublish}
-                                disabled={isUploading || !newImageData.alt}
-                                className="flex-[2] bg-[#8B0000] hover:bg-black text-white font-bold py-4 rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 border-b-4 border-red-950 tracking-widest text-[10px]"
-                            >
-                                {isUploading ? (
-                                    <>
-                                        <RefreshCw className="animate-spin" size={16} />
-                                        SYNCING...
-                                    </>
-                                ) : (
-                                    <>
-                                        <CheckCircle2 size={16} />
-                                        COMMIT TO CLOUD
-                                    </>
-                                )}
-                            </button>
+                            <div className="flex gap-4 pt-2">
+                                <button onClick={() => setIsModalOpen(false)} className="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-500 font-black py-4 rounded-2xl hover:bg-slate-200 transition-all text-[10px] uppercase tracking-widest">Discard</button>
+                                <button onClick={handlePublish} disabled={isUploading || !newImageData.alt} className="flex-[2] bg-[#8B0000] hover:bg-red-950 text-white font-black py-4 rounded-2xl shadow-xl transition-all active:scale-[0.98] disabled:opacity-50 text-[10px] uppercase tracking-widest border-b-4 border-sky-800">
+                                    {isUploading ? 'Publishing...' : 'Deploy Asset'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -486,7 +478,7 @@ const GalleryManager = () => {
                     <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl shadow-2xl relative z-10 overflow-hidden animate-in zoom-in slide-in-from-bottom-20 duration-500 border border-white/10">
                         <div className="bg-slate-50/50 dark:bg-slate-800/50 px-8 py-6 border-b border-slate-100 dark:border-slate-800">
                             <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-4">
-                                <span className="p-3 bg-sky-600 rounded-xl text-white shadow-lg"><Edit size={24} /></span>
+                                <span className="p-3 bg-[#8B0000] rounded-xl text-white shadow-lg"><Edit size={24} /></span>
                                 Edit Asset Record
                             </h3>
                             <p className="text-slate-500 mt-1 font-bold uppercase tracking-[0.2em] text-[8px] opacity-60">Update live production metadata</p>
@@ -495,15 +487,17 @@ const GalleryManager = () => {
                         <div className="p-8 space-y-8">
                             <div className="relative aspect-video rounded-3xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm">
                                 <img 
-                                    src={editingImage.src && (editingImage.src.startsWith('http') || editingImage.src.startsWith('data:')) 
-                                        ? editingImage.src 
-                                        : encodeURI(editingImage.src.startsWith('/uploads/Gallery/') 
-                                            ? `${WEBSITE_URL}${editingImage.src.replace('/uploads/Gallery/', '/Gallery/')}`
-                                            : editingImage.src.startsWith('/uploads/') 
-                                                ? (!editingImage.src.replace('/uploads/', '').startsWith('gallery_') && !editingImage.src.replace('/uploads/', '').startsWith('image_'))
-                                                    ? `${WEBSITE_URL}${editingImage.src.replace('/uploads/', '/')}`
-                                                    : `${API_IMAGE_URL}${editingImage.src}`
-                                                : `${API_IMAGE_URL}${editingImage.src.startsWith('/') ? '' : '/'}${editingImage.src}`)} 
+                                    src={(() => {
+                                        if (!editingImage.src) return '';
+                                        if (editingImage.src.startsWith('http') || editingImage.src.startsWith('data:')) return editingImage.src;
+                                        let path = editingImage.src;
+                                        if (path.startsWith('/uploads/Gallery/')) {
+                                            path = path.replace('/uploads/Gallery/', '/Gallery/');
+                                        }
+                                        return encodeURI(path.startsWith('/') 
+                                            ? `${API_IMAGE_URL}${path}` 
+                                            : `${API_IMAGE_URL}/Gallery/${path}`);
+                                    })()} 
                                     className="w-full h-full object-cover" 
                                     alt="Preview" 
                                 />
@@ -514,7 +508,7 @@ const GalleryManager = () => {
                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Media Label</label>
                                     <input 
                                         type="text" 
-                                        className="w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl px-5 py-4 font-bold text-[13px] text-slate-900 dark:text-white outline-none focus:border-sky-600 transition-all"
+                                        className="w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl px-5 py-4 font-bold text-[13px] text-slate-900 dark:text-white outline-none focus:border-[#8B0000] transition-all"
                                         value={editingImage.alt}
                                         onChange={(e) => setEditingImage({...editingImage, alt: e.target.value})}
                                     />
@@ -522,7 +516,7 @@ const GalleryManager = () => {
                                 <div className="space-y-3">
                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Sector Category</label>
                                     <select 
-                                        className="w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl px-5 py-4 font-bold text-[13px] text-slate-900 dark:text-white outline-none focus:border-sky-600 transition-all cursor-pointer appearance-none"
+                                        className="w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl px-5 py-4 font-bold text-[13px] text-slate-900 dark:text-white outline-none focus:border-[#8B0000] transition-all cursor-pointer appearance-none"
                                         value={editingImage.category}
                                         onChange={(e) => setEditingImage({...editingImage, category: e.target.value})}
                                     >
@@ -544,7 +538,7 @@ const GalleryManager = () => {
                             <button 
                                 onClick={handleUpdate}
                                 disabled={isUploading || !editingImage.alt}
-                                className="flex-[2] bg-sky-600 hover:bg-sky-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 border-b-4 border-sky-800 tracking-widest text-[10px]"
+                                className="flex-[2] bg-[#8B0000] hover:bg-red-950 text-white font-bold py-4 rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 border-b-4 border-sky-800 tracking-widest text-[10px]"
                             >
                                 {isUploading ? (
                                     <>
@@ -576,21 +570,23 @@ const GalleryManager = () => {
                         <div className="relative group">
                             <div className="absolute -inset-4 bg-white/10 rounded-[3.5rem] blur-3xl opacity-0 group-hover:opacity-100 transition duration-700"></div>
                              <img 
-                                 src={selectedImg.src && (selectedImg.src.startsWith('http') || selectedImg.src.startsWith('data:')) 
-                                     ? selectedImg.src 
-                                     : encodeURI(selectedImg.src.startsWith('/uploads/Gallery/') 
-                                         ? `${WEBSITE_URL}${selectedImg.src.replace('/uploads/Gallery/', '/Gallery/')}`
-                                         : selectedImg.src.startsWith('/uploads/') 
-                                             ? (!selectedImg.src.replace('/uploads/', '').startsWith('gallery_') && !selectedImg.src.replace('/uploads/', '').startsWith('image_'))
-                                                 ? `${WEBSITE_URL}${selectedImg.src.replace('/uploads/', '/')}`
-                                                 : `${API_IMAGE_URL}${selectedImg.src}`
-                                             : `${API_IMAGE_URL}${selectedImg.src.startsWith('/') ? '' : '/'}${selectedImg.src}`)} 
+                                 src={(() => {
+                                     if (!selectedImg.src) return '';
+                                     if (selectedImg.src.startsWith('http') || selectedImg.src.startsWith('data:')) return selectedImg.src;
+                                     let path = selectedImg.src;
+                                     if (path.startsWith('/uploads/Gallery/')) {
+                                         path = path.replace('/uploads/Gallery/', '/Gallery/');
+                                     }
+                                     return encodeURI(path.startsWith('/') 
+                                         ? `${API_IMAGE_URL}${path}` 
+                                         : `${API_IMAGE_URL}/Gallery/${path}`);
+                                 })()} 
                                 alt={selectedImg.alt} 
                                 className="relative max-h-[70vh] max-w-full rounded-[3rem] shadow-[0_0_100px_rgba(255,255,255,0.1)] object-contain border-4 border-white/10 animate-in zoom-in-95 duration-1000"
                             />
                         </div>
                         <div className="text-center">
-                            <span className="bg-[#8B0000] text-white text-[11px] font-bold px-10 py-4 rounded-2xl uppercase tracking-[0.4em] shadow-2xl shadow-red-950/40 border border-red-400/30">
+                            <span className="bg-[#8B0000] text-white text-[11px] font-bold px-10 py-4 rounded-2xl uppercase tracking-[0.4em] shadow-2xl shadow-sky-900/40 border border-sky-400/30">
                                 {selectedImg.category}
                             </span>
                             <h3 className="text-5xl md:text-6xl font-bold text-white mt-10 tracking-tighter uppercase max-w-4xl leading-tight">{selectedImg.alt || 'Asset Record'}</h3>
@@ -600,22 +596,36 @@ const GalleryManager = () => {
                 </div>
             )}
 
-            {/* Floating Notifications */}
-            <div className="fixed bottom-12 right-12 z-[200] flex flex-col gap-4">
+            {/* Notification Toasts */}
+            <div className="fixed bottom-6 right-6 z-[10000] flex flex-col gap-2">
                 {notifications.map(n => (
-                    <div 
-                        key={n.id} 
-                        className={`group flex items-center gap-6 px-10 py-8 rounded-[2.5rem] shadow-2xl text-white font-bold text-xs animate-in slide-in-from-right-10 duration-500 border-l-[12px] backdrop-blur-2xl ${
-                            n.type === 'success' ? 'bg-[#8B0000]/90 border-red-400' : 'bg-rose-600/90 border-rose-400'
-                        }`}
-                    >
-                        <div className="p-3 bg-white/10 rounded-xl group-hover:scale-110 transition-transform">
-                            {n.type === 'success' ? <CheckCircle2 size={24} /> : <AlertCircle size={24} />}
-                        </div>
-                        <span className="tracking-[0.2em] uppercase leading-relaxed">{n.message}</span>
+                    <div key={n.id} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl shadow-xl border animate-in slide-in-from-right-10 duration-500 bg-white dark:bg-slate-900 ${n.type === 'error' ? 'border-rose-500/20 text-rose-500' : 'border-sky-500/20 text-[#8B0000]'}`}>
+                        {n.type === 'error' ? <AlertCircle size={14} /> : <CheckCircle2 size={14} />}
+                        <span className="text-[10px] font-black uppercase tracking-wider">{n.message}</span>
                     </div>
                 ))}
             </div>
+
+            {/* Custom Delete Confirmation Modal */}
+            {deleteId && (
+                <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setDeleteId(null)} />
+                    <div className="relative bg-white dark:bg-slate-900 w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-10 duration-500 border border-white/20">
+                        <div className="p-10 text-center">
+                            <div className="h-20 w-20 bg-rose-50 dark:bg-rose-500/10 rounded-full flex items-center justify-center mx-auto mb-8 animate-bounce">
+                                <Trash2 size={32} className="text-rose-600" />
+                            </div>
+                            <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter mb-4">Confirm Deletion?</h3>
+                            <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-10 leading-relaxed">This record will be permanently purged from the registry.</p>
+                            
+                            <div className="flex gap-4">
+                                <button onClick={() => setDeleteId(null)} className="flex-1 px-8 py-4 bg-slate-50 dark:bg-slate-800 text-slate-400 font-bold rounded-2xl text-[10px] uppercase tracking-[0.2em] hover:bg-slate-100 transition-all">Cancel</button>
+                                <button onClick={handleDelete} className="flex-1 px-8 py-4 bg-[#8B0000] text-white font-bold rounded-2xl text-[10px] uppercase tracking-[0.2em] hover:bg-red-700 shadow-xl shadow-rose-200/20 transition-all active:scale-95">Purge Now</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

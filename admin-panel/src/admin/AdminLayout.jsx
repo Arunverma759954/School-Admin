@@ -7,7 +7,7 @@ const AdminLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     return (
-        <div className="min-h-screen bg-slate-100 font-sans text-slate-900 selection:bg-indigo-100 selection:text-indigo-700 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300">
+        <div className="min-h-screen bg-slate-100 font-sans text-slate-900 selection:bg-rose-100 selection:text-rose-700 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300">
             {/* <!-- ===== Page Wrapper Start ===== --> */}
             <div className="flex h-screen overflow-hidden">
                 {/* <!-- ===== Sidebar Start ===== --> */}

@@ -129,7 +129,7 @@ const Dashboard = () => {
                         <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30">
                             <CalendarCheck className="h-7 w-7" />
                         </div>
-                         <span className="flex items-center gap-1 rounded-full bg-sky-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-sky-600 dark:bg-sky-950/30">
+                         <span className="flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-[#8B0000] dark:bg-sky-950/30">
                             {loading ? '-' : stats.events} LIVE
                         </span>
                     </div>
