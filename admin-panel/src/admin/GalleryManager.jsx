@@ -485,19 +485,10 @@ const GalleryManager = () => {
                         <div className="p-8 space-y-8">
                             <div className="relative aspect-video rounded-3xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm">
                                 <img 
-                                    src={(() => {
-                                        if (!editingImage.src) return '';
-                                        if (editingImage.src.startsWith('http') || editingImage.src.startsWith('data:')) return editingImage.src;
-                                        let path = editingImage.src;
-                                        if (path.startsWith('/uploads/Gallery/')) {
-                                            path = path.replace('/uploads/Gallery/', '/Gallery/');
-                                        }
-                                        return encodeURI(path.startsWith('/') 
-                                            ? `${API_IMAGE_URL}${path}` 
-                                            : `${API_IMAGE_URL}/Gallery/${path}`);
-                                    })()} 
+                                    src={getImageUrl(editingImage.src)} 
                                     className="w-full h-full object-cover" 
                                     alt="Preview" 
+                                    onError={(e) => getFallbackImageUrl(e, editingImage.src)}
                                 />
                             </div>
 

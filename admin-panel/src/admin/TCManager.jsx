@@ -257,17 +257,7 @@ const TCManager = () => {
                                             <div className="h-16 w-16 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-white/10 overflow-hidden shrink-0 group-hover:shadow-xl transition-all group-hover:-translate-y-1 relative">
                                                 {tc?.imageFile ? (
                                                     <img
-                                                        src={(() => {
-                                                            if (!tc.imageFile) return '';
-                                                            if (tc.imageFile.startsWith('http') || tc.imageFile.startsWith('data:')) return tc.imageFile;
-                                                            let path = tc.imageFile;
-                                                            if (path.startsWith('/uploads/Gallery/TC/')) {
-                                                                path = path.replace('/uploads/Gallery/TC/', '/Gallery/TC/');
-                                                            }
-                                                            return encodeURI(path.startsWith('/')
-                                                                ? `${API_IMAGE_URL}${path}`
-                                                                : `${API_IMAGE_URL}/Gallery/TC/${path}`);
-                                                        })()}
+                                                        src={getImageUrl(tc.imageFile)}
                                                         className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
                                                         alt={tc?.studentName || 'Student'}
                                                         onError={(e) => getFallbackImageUrl(e, tc.imageFile)}
