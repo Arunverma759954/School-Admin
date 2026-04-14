@@ -1,6 +1,6 @@
 export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://school-backend-3-8r1j.onrender.com/api';
 export const API_IMAGE_URL = import.meta.env.VITE_API_IMAGE_URL || 'https://school-backend-3-8r1j.onrender.com';
-export const WEBSITE_URL = import.meta.env.VITE_WEBSITE_URL || 'https://school-web-sandy.vercel.app';
+export const WEBSITE_URL = import.meta.env.VITE_WEBSITE_URL || 'https://school-web-rho-drab.vercel.app';
 
 export const getImageUrl = (src) => {
     if (!src) return '';
