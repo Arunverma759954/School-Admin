@@ -37,27 +37,22 @@ app.use('/api', authRoutes);
 app.use('/api/gallery', galleryRoutes);
 app.use('/api', dynamicRoutes);
 
-// Static folder for professional uploads
+// Static folder for professional uploads (ONLY ONE)
 const uploadPath = path.join(__dirname, 'uploads');
 app.use('/uploads', express.static(uploadPath));
-console.log('Serving uploads from:', uploadPath);
 
-// Mount the entire public folder of the website at the root
-// Using absolute path resolving to ensure it works on Render
+// Mount the website public folder content
 const repoRoot = path.resolve(__dirname, '../../../');
 const publicPath = path.join(repoRoot, 'public');
-console.log('Mounting website public folder from:', publicPath);
 
-// 👉 API routes Priority: Move static below to prevent interference
+// 👉 Legcay Gallery assets from public
 app.use('/Gallery', express.static(path.join(publicPath, 'Gallery')));
-app.use('/uploads/Gallery', express.static(path.join(publicPath, 'Gallery')));
-app.use('/uploads', express.static(path.join(publicPath))); 
-app.use('/uploads', express.static(uploadPath)); // Keep original uploads too
+
+// 👉 Root static (placed last to prevent API interference)
 app.use('/', express.static(publicPath));
 
-
 app.get('/', (req, res) => {
-    res.send('Professional API is running... v11');
+    res.send('Professional API is running... v12');
 });
 
 // Diagnostic route
