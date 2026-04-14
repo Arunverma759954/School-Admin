@@ -101,13 +101,20 @@ const updateGallery = async (req, res) => {
             image.alt = alt || image.alt;
             image.category = category || image.category;
 
+            // If a new file was uploaded, update the src
+            if (req.file) {
+                // Optional: Delete old file if needed
+                image.src = `/uploads/${req.file.filename}`;
+            }
+
             const updatedImage = await image.save();
             res.json(updatedImage);
         } else {
             res.status(404).json({ message: 'Image not found' });
         }
     } catch (error) {
-        res.status(500).json({ message: 'Server Error' });
+        console.error('Update Error:', error);
+        res.status(500).json({ message: 'Server Error', error: error.message });
     }
 };
 

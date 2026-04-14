@@ -10,7 +10,7 @@ router.route('/')
     .post(protect, admin, upload.single('image'), addGallery);
 
 router.route('/:id')
-    .put(protect, admin, updateGallery)
+    .put(protect, admin, upload.single('image'), updateGallery)
     .delete(protect, admin, deleteGallery);
 
 export default router;
