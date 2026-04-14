@@ -28,10 +28,15 @@ export const getFallbackImageUrl = (e, src) => {
     
     // If it already failed, try to inject a fallback domain
     let path = src;
+    if (!path) return;
+
     if (path.startsWith('/uploads/Gallery/')) {
         path = path.replace('/uploads/Gallery/', '/Gallery/');
     } else if (path.startsWith('/uploads/')) {
-        // do nothing
+        path = path.replace('/uploads/', '/'); 
+    } else if (!path.startsWith('/')) {
+        // Legacy flat filenames (likely TC images)
+        path = `/Gallery/TC/${path}`;
     }
 
     // This is used in onError
@@ -40,7 +45,9 @@ export const getFallbackImageUrl = (e, src) => {
     
     if (attemptIdx < fallbacks.length) {
         e.target.setAttribute('data-attempt', (attemptIdx + 1).toString());
-        e.target.src = `${fallbacks[attemptIdx]}${path}`;
+        const finalUrl = `${fallbacks[attemptIdx]}${path}`;
+        console.log(`Fallback Attempt ${attemptIdx + 1}: ${finalUrl}`);
+        e.target.src = finalUrl;
     } else {
         // Final fallback: hide or show icon
         e.target.style.display = 'none';

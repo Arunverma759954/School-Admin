@@ -164,7 +164,9 @@ const GalleryManager = () => {
     };
 
     const handleUpdate = async () => {
+        if (!editingImage) return;
         setIsUploading(true);
+        console.log("Updating gallery asset:", editingImage._id, editingImage.alt);
         try {
             const res = await fetch(`${API_URL}/${editingImage._id}`, {
                 method: 'PUT',
@@ -179,19 +181,19 @@ const GalleryManager = () => {
             });
 
             const data = await res.json();
-            setIsUploading(false);
             if (res.ok) {
                 setImages(prev => prev.map(img => img._id === data._id ? data : img));
                 setIsEditModalOpen(false);
                 setEditingImage(null);
-                addNotification('Asset metadata updated successfully');
+                addNotification('Asset metadata updated successfully', 'success');
             } else {
                 addNotification(data.message || 'Update failed', 'error');
             }
         } catch (error) {
             console.error("Update failed:", error);
-            setIsUploading(false);
             addNotification('Network error during update', 'error');
+        } finally {
+            setIsUploading(false);
         }
     };
 
