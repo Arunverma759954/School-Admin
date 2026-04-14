@@ -175,11 +175,12 @@ const GalleryManager = () => {
     const handleUpdate = async () => {
         if (!editingImage) return;
         setIsUploading(true);
+
         try {
             const formData = new FormData();
             formData.append('alt', editingImage.alt);
             formData.append('category', editingImage.category);
-            
+
             if (editingImage.newFile) {
                 formData.append('image', editingImage.newFile);
             }
@@ -187,23 +188,38 @@ const GalleryManager = () => {
             const res = await fetch(`${API_URL}/${editingImage._id}`, {
                 method: 'PUT',
                 headers: { 
-                    'Authorization': `Bearer ${user?.token}`
+                    Authorization: `Bearer ${user?.token}`
                 },
                 body: formData
             });
 
-            const data = await res.json();
+            // SAFE PARSE: First read as text to prevent "Unexpected token <" crash
+            const responseText = await res.text();
+            let data;
+            
+            try {
+                data = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error("❌ BACKEND RETURNED NON-JSON (HTML/Text):", responseText);
+                addNotification("Server returned an invalid response. Please check backend logs.", "error");
+                setIsUploading(false);
+                return;
+            }
+
             if (res.ok) {
                 setImages(prev => prev.map(img => img._id === data._id ? data : img));
                 setIsEditModalOpen(false);
                 setEditingImage(null);
                 setPreviewUrl('');
                 addNotification('Asset updated successfully', 'success');
+                
+                // Optional: Refresh local state to ensure sync
+                setTimeout(() => fetchImages(), 1000);
             } else {
                 addNotification(data.message || 'Update failed', 'error');
             }
         } catch (error) {
-            console.error("Update failed:", error);
+            console.error("Critical update failure:", error);
             addNotification('Network error during update', 'error');
         } finally {
             setIsUploading(false);
