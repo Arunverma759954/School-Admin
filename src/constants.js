@@ -9,11 +9,23 @@ export const getImageUrl = (src) => {
     // Case 1: Already a full URL (Cloudinary, http, data:) → use directly
     if (src.startsWith('http') || src.startsWith('data:')) return src;
 
-    // Case 2: Relative path like /uploads/Gallery/... → prepend Render backend URL
-    if (src.startsWith('/')) return `${API_IMAGE_URL}${src}`;
+    // Remove any leading/trailing whitespace
+    let cleanSrc = src.trim();
 
-    // Case 3: Legacy flat filename → assume it's in /uploads/
-    return `${API_IMAGE_URL}/uploads/${src}`;
+    // Ensure we don't end up with triple slashes or other artifacts
+    // If it starts with /uploads/ or /Gallery/, just prepend the base
+    if (cleanSrc.startsWith('/')) {
+        return `${API_IMAGE_URL}${cleanSrc}`;
+    }
+
+    // Case 3: Legacy or relative paths without leading slash
+    // If it already starts with uploads/ or Gallery/, just prepend the base with a slash
+    if (cleanSrc.startsWith('uploads/') || cleanSrc.startsWith('Gallery/')) {
+        return `${API_IMAGE_URL}/${cleanSrc}`;
+    }
+
+    // Case 4: Flat filename → assume it's in /uploads/
+    return `${API_IMAGE_URL}/uploads/${cleanSrc}`;
 };
 
 // Error handler for images - show a grey placeholder on failure

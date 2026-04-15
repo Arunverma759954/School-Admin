@@ -10,7 +10,8 @@ import {
     X,
     CheckCircle2,
     Edit,
-    Image as ImageIcon
+    Image as ImageIcon,
+    AlertCircle
 } from 'lucide-react';
 import { useAuth } from '../hooks/AuthContext';
 
@@ -35,15 +36,34 @@ const TCManager = () => {
     }, [user]);
 
     const fetchTCs = async () => {
+        setIsLoading(true);
         try {
             const res = await fetch(API_URL);
+            if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+            
             const data = await res.json();
+            
+            // If backend returns an error object instead of array
+            if (data.message && !Array.isArray(data)) {
+                throw new Error(data.message);
+            }
+            
             setTcs(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error("Failed to fetch TCs:", err);
+            addNotification(err.message || 'Registry link offline', 'error');
+            setTcs([]);
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const addNotification = (message, type = 'success') => {
+        const id = Date.now();
+        setNotifications(prev => [...prev, { id, message, type }]);
+        setTimeout(() => {
+            setNotifications(prev => prev.filter(n => n.id !== id));
+        }, 3000);
     };
 
     const handleCreate = async (e) => {
@@ -178,7 +198,8 @@ const TCManager = () => {
         <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-5 duration-700 pb-20">
             {/* Header Section */}
             <div className="relative">
-                <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 bg-white dark:bg-slate-900 p-6 md:p-10 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm">
+                <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md p-6 md:p-10 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl overflow-hidden relative">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/5 blur-[100px] rounded-full -mr-20 -mt-20"></div>
                     <div>
                         <div className="flex items-center gap-2 mb-3">
                             <span className="flex items-center gap-1.5 bg-emerald-50 text-emerald-600 text-[8px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg border border-emerald-100 dark:bg-emerald-500/10 dark:border-emerald-500/20">
@@ -357,17 +378,7 @@ const TCManager = () => {
                                         <img src={tcPreview} className="w-full h-full object-cover" />
                                     ) : (editTC?.imageFile) ? (
                                         <img
-                                            src={(() => {
-                                                if (!editTC.imageFile) return '';
-                                                if (editTC.imageFile.startsWith('http') || editTC.imageFile.startsWith('data:')) return editTC.imageFile;
-                                                let path = editTC.imageFile;
-                                                if (path.startsWith('/uploads/Gallery/TC/')) {
-                                                    path = path.replace('/uploads/Gallery/TC/', '/Gallery/TC/');
-                                                }
-                                                return encodeURI(path.startsWith('/')
-                                                    ? `${API_IMAGE_URL}${path}`
-                                                    : `${API_IMAGE_URL}/Gallery/TC/${path}`);
-                                            })()}
+                                            src={getImageUrl(editTC.imageFile)}
                                             className="w-full h-full object-cover"
                                         />
                                     ) : (

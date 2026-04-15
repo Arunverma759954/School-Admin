@@ -49,14 +49,21 @@ const GalleryManager = () => {
         setIsLoading(true);
         try {
             const res = await fetch(API_URL);
+            if (!res.ok) throw new Error(`Server returned ${res.status}`);
+            
             const data = await res.json();
-
             console.log("IMAGES DATA:", data);
+
+            // If backend returns an error object instead of array
+            if (data.message && !Array.isArray(data)) {
+                throw new Error(data.message);
+            }
 
             setImages(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error("Failed to fetch gallery:", error);
-            addNotification('Connection to database failed', 'error');
+            addNotification(error.message || 'Connection to database failed', 'error');
+            setImages([]);
         } finally {
             setIsLoading(false);
         }
@@ -252,7 +259,8 @@ const GalleryManager = () => {
 
             {/* Premium Header Container */}
             <div className="relative">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white dark:bg-slate-900 p-6 md:p-10 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm">
+                <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md p-6 md:p-10 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl overflow-hidden relative">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/5 blur-[100px] rounded-full -mr-20 -mt-20"></div>
                     <div>
                         <div className="flex items-center gap-3 mb-3">
                             <span className="flex items-center gap-1.5 bg-emerald-50 text-emerald-600 text-[8px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg border border-emerald-100 dark:bg-emerald-500/10 dark:border-emerald-500/20">

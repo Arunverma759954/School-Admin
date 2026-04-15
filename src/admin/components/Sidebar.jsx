@@ -43,7 +43,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
     return (
         <aside
-            className={`absolute left-0 top-0 z-50 flex h-screen w-72 flex-col overflow-y-hidden border-r border-slate-100 bg-white duration-300 ease-linear dark:border-slate-800 dark:bg-slate-950 lg:static lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+            className={`absolute left-0 top-0 z-50 flex h-screen w-72 flex-col overflow-y-hidden border-r border-slate-100 bg-white/90 backdrop-blur-xl duration-300 ease-linear dark:border-slate-800 dark:bg-slate-950/90 lg:static lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
         >
             {/* SIDEBAR HEADER */}
             <div className="flex items-center justify-between px-6 py-8 transition-all border-b border-slate-50 dark:border-slate-900 bg-white dark:bg-slate-950">
