@@ -130,18 +130,25 @@ const GalleryManager = () => {
                 return;
             }
 
-            const formData = new FormData();
-            formData.append('image', file);
-            formData.append('alt', newImageData.alt || 'School Media');
-            formData.append('category', newImageData.category || 'General');
+            // Convert file to base64 - stores permanently in MongoDB
+            const base64 = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
 
             const res = await fetch(API_URL, {
                 method: 'POST',
                 headers: { 
-                    'Authorization': `Bearer ${user?.token}`
-                    // Do NOT set Content-Type header when using FormData
+                    'Authorization': `Bearer ${user?.token}`,
+                    'Content-Type': 'application/json'
                 },
-                body: formData
+                body: JSON.stringify({
+                    src: base64,
+                    alt: newImageData.alt || 'School Media',
+                    category: newImageData.category || 'General'
+                })
             });
 
             const data = await res.json();
@@ -152,7 +159,7 @@ const GalleryManager = () => {
                 setIsModalOpen(false);
                 setPreviewUrl('');
                 setNewImageData({ alt: '', category: 'General' });
-                fileInput.value = ''; // Reset input
+                fileInput.value = '';
                 addNotification('Media published to live website gallery');
             } else {
                 addNotification(data.message || 'Upload failed', 'error');
@@ -177,31 +184,40 @@ const GalleryManager = () => {
         setIsUploading(true);
 
         try {
-            const formData = new FormData();
-            formData.append('alt', editingImage.alt);
-            formData.append('category', editingImage.category);
+            let newSrc = undefined;
 
+            // If a new file was selected, convert to base64
             if (editingImage.newFile) {
-                formData.append('image', editingImage.newFile);
+                newSrc = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(editingImage.newFile);
+                });
             }
+
+            const payload = {
+                alt: editingImage.alt,
+                category: editingImage.category,
+            };
+            if (newSrc) payload.src = newSrc;
 
             const res = await fetch(`${API_URL}/${editingImage._id}`, {
                 method: 'PUT',
-                headers: { 
-                    Authorization: `Bearer ${user?.token}`
+                headers: {
+                    'Authorization': `Bearer ${user?.token}`,
+                    'Content-Type': 'application/json'
                 },
-                body: formData
+                body: JSON.stringify(payload)
             });
 
-            // SAFE PARSE: First read as text to prevent "Unexpected token <" crash
             const responseText = await res.text();
             let data;
-            
             try {
                 data = JSON.parse(responseText);
             } catch (parseError) {
-                console.error("❌ BACKEND RETURNED NON-JSON (HTML/Text):", responseText);
-                addNotification("Server returned an invalid response. Please check backend logs.", "error");
+                console.error('Backend returned non-JSON:', responseText);
+                addNotification('Server returned an invalid response. Please check backend logs.', 'error');
                 setIsUploading(false);
                 return;
             }
@@ -212,14 +228,12 @@ const GalleryManager = () => {
                 setEditingImage(null);
                 setPreviewUrl('');
                 addNotification('Asset updated successfully', 'success');
-                
-                // Optional: Refresh local state to ensure sync
                 setTimeout(() => fetchImages(), 1000);
             } else {
                 addNotification(data.message || 'Update failed', 'error');
             }
         } catch (error) {
-            console.error("Critical update failure:", error);
+            console.error('Critical update failure:', error);
             addNotification('Network error during update', 'error');
         } finally {
             setIsUploading(false);
@@ -343,17 +357,10 @@ const GalleryManager = () => {
                                             <img 
                                                 src={(() => {
                                                     if (!img.src) return '';
-                                                    if (img.src.startsWith('http') || img.src.startsWith('data:')) return img.src;
-                                                    let path = img.src;
-                                                    // Note: We keep /uploads/Gallery/ as is if it exists in uploads, 
-                                                    // but for safety we map it to /Gallery/ if it's a known static file
-                                                    // In our case, the backend serves public at / so /Gallery/ works.
-                                                    if (path.startsWith('/uploads/Gallery/')) {
-                                                        path = path.replace('/uploads/Gallery/', '/Gallery/');
-                                                    }
-                                                    return encodeURI(path.startsWith('/') 
-                                                        ? `${API_IMAGE_URL}${path}` 
-                                                        : `${API_IMAGE_URL}/Gallery/${path}`);
+                                                    // base64 or full http URL — use directly
+                                                    if (img.src.startsWith('data:') || img.src.startsWith('http')) return img.src;
+                                                    // Legacy /uploads/ path
+                                                    return `${API_IMAGE_URL}${img.src}`;
                                                 })()} 
                                                 alt={img.alt} 
                                                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
@@ -608,12 +615,10 @@ const GalleryManager = () => {
                                      if (!selectedImg.src) return '';
                                      if (selectedImg.src.startsWith('http') || selectedImg.src.startsWith('data:')) return selectedImg.src;
                                      let path = selectedImg.src;
-                                     if (path.startsWith('/uploads/Gallery/')) {
-                                         path = path.replace('/uploads/Gallery/', '/Gallery/');
-                                     }
+                                     // All /uploads/ paths must point to the backend server
                                      return encodeURI(path.startsWith('/') 
                                          ? `${API_IMAGE_URL}${path}` 
-                                         : `${API_IMAGE_URL}/Gallery/${path}`);
+                                         : `${API_IMAGE_URL}/uploads/Gallery/${path}`);
                                  })()} 
                                 alt={selectedImg.alt} 
                                 className="relative max-h-[70vh] max-w-full rounded-[3rem] shadow-[0_0_100px_rgba(255,255,255,0.1)] object-contain border-4 border-white/10 animate-in zoom-in-95 duration-1000"

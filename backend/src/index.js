@@ -24,7 +24,8 @@ app.use(helmet({
     crossOriginResourcePolicy: false,
 }));
 app.use(cors());
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json({ limit: '20mb' }));
+app.use(express.urlencoded({ limit: '20mb', extended: true }));
 app.use(morgan('dev'));
 
 import { fileURLToPath } from 'url';
@@ -69,10 +70,8 @@ app.get('/api/debug-files', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-if (process.env.NODE_ENV !== 'production') {
-    app.listen(PORT, () => {
-        console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
-    });
-}
+app.listen(PORT, () => {
+    console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+});
 
 export default app;
