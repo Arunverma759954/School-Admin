@@ -13,23 +13,31 @@ export const getImageUrl = (src) => {
     let cleanSrc = src.trim();
 
     let finalPath = '';
-    // Ensure we don't end up with triple slashes or other artifacts
-    // If it starts with /uploads/ or /Gallery/, just prepend the base
+    // If it starts with /uploads/ or /Gallery/, clean it up
     if (cleanSrc.startsWith('/')) {
         finalPath = cleanSrc;
     } 
-    // Case 3: Legacy or relative paths without leading slash
     else if (cleanSrc.startsWith('uploads/') || cleanSrc.startsWith('Gallery/')) {
         finalPath = '/' + cleanSrc;
     }
-    // Case 4: Flat filename → assume it's in /uploads/
     else {
         finalPath = '/uploads/' + cleanSrc;
     }
 
-    // ✅ IMPORTANT: Encode the URI to handle spaces in filenames
-    // But we must NOT encode the http:// part of API_IMAGE_URL
-    return `${API_IMAGE_URL}${encodeURI(finalPath)}`;
+    // ✅ ROBUST ENCODING: We must encode spaces and special characters like ()
+    // Manual replacement for common problematic characters if encodeURI misses them
+    const encodedPath = encodeURI(finalPath).replace(/[()]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
+    
+    const finalUrl = `${API_IMAGE_URL}${encodedPath}`;
+    
+    // Log once per unique URL to avoid console spam
+    if (!window._loggedUrls) window._loggedUrls = new Set();
+    if (!window._loggedUrls.has(finalUrl)) {
+        console.log('🖼️ Resolved Image URL:', finalUrl);
+        window._loggedUrls.add(finalUrl);
+    }
+
+    return finalUrl;
 };
 
 // Error handler for images - show a grey placeholder on failure
