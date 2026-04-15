@@ -12,20 +12,24 @@ export const getImageUrl = (src) => {
     // Remove any leading/trailing whitespace
     let cleanSrc = src.trim();
 
+    let finalPath = '';
     // Ensure we don't end up with triple slashes or other artifacts
     // If it starts with /uploads/ or /Gallery/, just prepend the base
     if (cleanSrc.startsWith('/')) {
-        return `${API_IMAGE_URL}${cleanSrc}`;
-    }
-
+        finalPath = cleanSrc;
+    } 
     // Case 3: Legacy or relative paths without leading slash
-    // If it already starts with uploads/ or Gallery/, just prepend the base with a slash
-    if (cleanSrc.startsWith('uploads/') || cleanSrc.startsWith('Gallery/')) {
-        return `${API_IMAGE_URL}/${cleanSrc}`;
+    else if (cleanSrc.startsWith('uploads/') || cleanSrc.startsWith('Gallery/')) {
+        finalPath = '/' + cleanSrc;
+    }
+    // Case 4: Flat filename → assume it's in /uploads/
+    else {
+        finalPath = '/uploads/' + cleanSrc;
     }
 
-    // Case 4: Flat filename → assume it's in /uploads/
-    return `${API_IMAGE_URL}/uploads/${cleanSrc}`;
+    // ✅ IMPORTANT: Encode the URI to handle spaces in filenames
+    // But we must NOT encode the http:// part of API_IMAGE_URL
+    return `${API_IMAGE_URL}${encodeURI(finalPath)}`;
 };
 
 // Error handler for images - show a grey placeholder on failure
