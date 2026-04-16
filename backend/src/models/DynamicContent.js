@@ -28,7 +28,7 @@ const tcSchema = new mongoose.Schema({
     admissionNo: { type: String, required: true, unique: true },
     issueDate: { type: Date, required: true },
     className: { type: String, required: true },
-    tcNumber: { type: String, required: true, unique: true },
+    tcNumber: { type: String },
     imageFile: { type: String }, // Path to the student photo
     pdfUrl: { type: String } // Path to the TC document
 }, { timestamps: true });

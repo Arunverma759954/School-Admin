@@ -12,7 +12,9 @@ import {
     RefreshCw,
     Clock,
     AlertCircle,
-    Camera
+    Camera,
+    Tag,
+    FolderPlus,
 } from 'lucide-react';
 import { useAuth } from '../hooks/AuthContext';
 
@@ -35,14 +37,16 @@ const GalleryManager = () => {
     const [filterCategory, setFilterCategory] = useState('All');
     const [deleteId, setDeleteId] = useState(null);
 
+    // Category management state
+    const [categories, setCategories] = useState([]);
+    const [isCatModalOpen, setIsCatModalOpen] = useState(false);
+    const [newCatName, setNewCatName] = useState('');
+    const [editingCat, setEditingCat] = useState(null); // { _id, name }
+    const [deleteCatId, setDeleteCatId] = useState(null);
+    const [catLoading, setCatLoading] = useState(false);
+
     const API_URL = `${API_BASE_URL}/gallery`;
-
-
-    const categories = [
-        'All', 'Annual Function', 'Competition', 'Sports', 'Yoga',
-        'Campus Life', 'Student Activities', 'Training', 'PTA',
-        'Teacher Picnic', 'Republic Day', 'General'
-    ];
+    const CAT_URL = `${API_BASE_URL}/categories`;
 
 
     const fetchImages = async () => {
@@ -70,7 +74,95 @@ const GalleryManager = () => {
     };
     useEffect(() => {
         fetchImages();
+        fetchCategories();
     }, []);
+
+    const fetchCategories = async () => {
+        try {
+            const res = await fetch(CAT_URL);
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+            setCategories(data.map(c => c.name));
+        } catch {
+            setCategories(['General']);
+        }
+    };
+
+    const fetchCategoriesRaw = async () => {
+        const res = await fetch(CAT_URL);
+        return res.ok ? await res.json() : [];
+    };
+
+    const handleCreateCategory = async () => {
+        if (!newCatName.trim()) return;
+        setCatLoading(true);
+        try {
+            const res = await fetch(CAT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${user?.token}` },
+                body: JSON.stringify({ name: newCatName.trim() }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setNewCatName('');
+                await fetchCategories();
+                addNotification(`Category "${data.name}" created`);
+            } else {
+                addNotification(data.message || 'Failed to create category', 'error');
+            }
+        } catch {
+            addNotification('Network error', 'error');
+        } finally {
+            setCatLoading(false);
+        }
+    };
+
+    const handleRenameCategory = async () => {
+        if (!editingCat || !editingCat.name.trim()) return;
+        setCatLoading(true);
+        try {
+            const res = await fetch(`${CAT_URL}/${editingCat._id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${user?.token}` },
+                body: JSON.stringify({ name: editingCat.name.trim() }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setEditingCat(null);
+                await fetchCategories();
+                addNotification(`Category renamed to "${data.name}"`);
+            } else {
+                addNotification(data.message || 'Failed to rename', 'error');
+            }
+        } catch {
+            addNotification('Network error', 'error');
+        } finally {
+            setCatLoading(false);
+        }
+    };
+
+    const handleDeleteCategory = async () => {
+        if (!deleteCatId) return;
+        setCatLoading(true);
+        try {
+            const res = await fetch(`${CAT_URL}/${deleteCatId}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${user?.token}` },
+            });
+            if (res.ok) {
+                setDeleteCatId(null);
+                await fetchCategories();
+                addNotification('Category deleted');
+            } else {
+                const data = await res.json();
+                addNotification(data.message || 'Failed to delete', 'error');
+            }
+        } catch {
+            addNotification('Network error', 'error');
+        } finally {
+            setCatLoading(false);
+        }
+    };
 
     const addNotification = (message, type = 'success') => {
         const id = Date.now();
@@ -285,6 +377,13 @@ const GalleryManager = () => {
                             <RefreshCw size={18} className="group-active:rotate-180 transition-transform duration-500" />
                         </button>
                         <button
+                            onClick={() => setIsCatModalOpen(true)}
+                            className="flex items-center gap-3 bg-slate-800 hover:bg-slate-700 text-white px-6 py-3.5 rounded-xl font-bold text-[10px] tracking-widest transition-all active:scale-95 group border-b-4 border-slate-900"
+                        >
+                            <Tag className="w-4 h-4" />
+                            CATEGORIES
+                        </button>
+                        <button
                             onClick={() => setIsModalOpen(true)}
                             className="flex items-center gap-3 bg-[#8B0000] hover:bg-red-950 text-white px-6 py-3.5 rounded-xl font-bold text-[10px] tracking-widest shadow-lg shadow-rose-100 dark:shadow-none transition-all active:scale-95 group border-b-4 border-red-950"
                         >
@@ -305,9 +404,10 @@ const GalleryManager = () => {
                             value={filterCategory}
                             onChange={(e) => setFilterCategory(e.target.value)}
                         >
+                            <option value="All" className="bg-white dark:bg-slate-900">ALL</option>
                             {categories.map(cat => (
                                 <option key={cat} value={cat} className="bg-white dark:bg-slate-900">
-                                    {cat.toUpperCase()} {cat !== 'All' ? `(${images.filter(i => i.category === cat).length})` : ''}
+                                    {cat.toUpperCase()} ({images.filter(i => i.category === cat).length})
                                 </option>
                             ))}
                         </select>
@@ -468,7 +568,7 @@ const GalleryManager = () => {
                                         value={newImageData.category}
                                         onChange={(e) => setNewImageData({ ...newImageData, category: e.target.value })}
                                     >
-                                        {categories.filter(c => c !== 'All').map(cat => (
+                                        {categories.map(cat => (
                                             <option key={cat} value={cat}>{cat.toUpperCase()}</option>
                                         ))}
                                     </select>
@@ -543,7 +643,7 @@ const GalleryManager = () => {
                                         value={editingImage.category}
                                         onChange={(e) => setEditingImage({ ...editingImage, category: e.target.value })}
                                     >
-                                        {categories.filter(c => c !== 'All').map(cat => (
+                                        {categories.map(cat => (
                                             <option key={cat} value={cat}>{cat.toUpperCase()}</option>
                                         ))}
                                     </select>
@@ -605,6 +705,121 @@ const GalleryManager = () => {
                             </span>
                             <h3 className="text-5xl md:text-6xl font-bold text-white mt-10 tracking-tighter uppercase max-w-4xl leading-tight">{selectedImg.alt || 'Asset Record'}</h3>
                             <p className="text-white/40 font-bold uppercase tracking-[0.3em] text-[10px] mt-6">Securely stored since {new Date(selectedImg.createdAt).toLocaleDateString()}</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Category Management Modal */}
+            {isCatModalOpen && (
+                <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-300" onClick={() => { setIsCatModalOpen(false); setEditingCat(null); setNewCatName(''); }} />
+                    <div className="relative bg-white dark:bg-slate-900 w-full max-w-lg rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in slide-in-from-bottom-10 duration-500 border border-slate-200 dark:border-slate-800">
+                        <div className="px-8 py-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30">
+                            <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-3 uppercase tracking-tight">
+                                <div className="p-2 bg-slate-800 rounded-lg text-white"><Tag size={18} /></div>
+                                Manage Categories
+                            </h3>
+                            <button onClick={() => { setIsCatModalOpen(false); setEditingCat(null); setNewCatName(''); }} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-all">
+                                <X size={18} className="text-slate-400" />
+                            </button>
+                        </div>
+
+                        <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+                            {/* Add New Category */}
+                            <div className="space-y-2">
+                                <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest px-1">New Category</label>
+                                <div className="flex gap-3">
+                                    <input
+                                        type="text"
+                                        placeholder="Category name..."
+                                        className="flex-1 bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl px-4 py-3 font-bold text-[12px] text-slate-900 dark:text-white outline-none focus:border-[#8B0000] transition-all"
+                                        value={newCatName}
+                                        onChange={(e) => setNewCatName(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && handleCreateCategory()}
+                                    />
+                                    <button
+                                        onClick={handleCreateCategory}
+                                        disabled={catLoading || !newCatName.trim()}
+                                        className="flex items-center gap-2 bg-[#8B0000] hover:bg-red-950 text-white px-5 py-3 rounded-xl font-bold text-[10px] tracking-widest transition-all active:scale-95 disabled:opacity-50"
+                                    >
+                                        <FolderPlus size={16} />
+                                        ADD
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Category List */}
+                            <div className="space-y-2">
+                                <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest px-1">Existing Categories ({categories.length})</label>
+                                <div className="space-y-2">
+                                    {categories.map((cat) => (
+                                        <div key={cat} className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 rounded-xl px-4 py-3 border border-slate-100 dark:border-slate-700">
+                                            {editingCat?.name === cat ? (
+                                                <>
+                                                    <input
+                                                        type="text"
+                                                        className="flex-1 bg-white dark:bg-slate-900 border-2 border-[#8B0000] rounded-lg px-3 py-1.5 font-bold text-[12px] text-slate-900 dark:text-white outline-none"
+                                                        value={editingCat.name}
+                                                        onChange={(e) => setEditingCat({ ...editingCat, name: e.target.value })}
+                                                        onKeyDown={(e) => e.key === 'Enter' && handleRenameCategory()}
+                                                        autoFocus
+                                                    />
+                                                    <button onClick={handleRenameCategory} disabled={catLoading} className="p-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition-all disabled:opacity-50">
+                                                        <CheckCircle2 size={14} />
+                                                    </button>
+                                                    <button onClick={() => setEditingCat(null)} className="p-2 bg-slate-200 dark:bg-slate-700 text-slate-500 rounded-lg transition-all">
+                                                        <X size={14} />
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span className="flex-1 font-bold text-[11px] text-slate-700 dark:text-white uppercase tracking-widest">{cat}</span>
+                                                    <span className="text-[9px] font-bold text-slate-400 mr-2">{images.filter(i => i.category === cat).length} images</span>
+                                                    <button
+                                                        onClick={async () => {
+                                                            const raw = await fetchCategoriesRaw();
+                                                            const found = raw.find(c => c.name === cat);
+                                                            if (found) setEditingCat(found);
+                                                        }}
+                                                        className="p-2 bg-white dark:bg-slate-900 text-[#8B0000] rounded-lg hover:bg-[#8B0000] hover:text-white transition-all border border-slate-200 dark:border-slate-700"
+                                                    >
+                                                        <Edit size={14} />
+                                                    </button>
+                                                    <button
+                                                        onClick={async () => {
+                                                            const raw = await fetchCategoriesRaw();
+                                                            const found = raw.find(c => c.name === cat);
+                                                            if (found) setDeleteCatId(found._id);
+                                                        }}
+                                                        className="p-2 bg-white dark:bg-slate-900 text-rose-500 rounded-lg hover:bg-rose-500 hover:text-white transition-all border border-slate-200 dark:border-slate-700"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Category Confirmation */}
+            {deleteCatId && (
+                <div className="fixed inset-0 z-[2100] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setDeleteCatId(null)} />
+                    <div className="relative bg-white dark:bg-slate-900 w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-500 border border-white/20 p-8 text-center">
+                        <div className="w-16 h-16 bg-rose-100 dark:bg-rose-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Trash2 className="w-8 h-8 text-rose-500" />
+                        </div>
+                        <h4 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight mb-2">Delete Category?</h4>
+                        <p className="text-slate-400 text-[11px] font-bold uppercase tracking-widest mb-6">Images in this category will not be deleted, only the category label.</p>
+                        <div className="flex gap-3">
+                            <button onClick={() => setDeleteCatId(null)} className="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-500 font-black py-3 rounded-xl text-[10px] uppercase tracking-widest">Cancel</button>
+                            <button onClick={handleDeleteCategory} disabled={catLoading} className="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-black py-3 rounded-xl text-[10px] uppercase tracking-widest disabled:opacity-50">Delete</button>
                         </div>
                     </div>
                 </div>

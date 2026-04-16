@@ -22,7 +22,7 @@ const TCManager = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [newTC, setNewTC] = useState({ studentName: '', admissionNo: '', issueDate: '', className: '', tcNumber: '' });
+    const [newTC, setNewTC] = useState({ studentName: '', admissionNo: '', className: '' });
     const [editTC, setEditTC] = useState(null);
     const [selectedFile, setSelectedFile] = useState(null);
     const [tcPreview, setTcPreview] = useState(null);
@@ -71,6 +71,7 @@ const TCManager = () => {
         try {
             const formData = new FormData();
             Object.keys(newTC).forEach(key => formData.append(key, newTC[key]));
+            formData.append('issueDate', new Date().toISOString());
             if (selectedFile) formData.append('image', selectedFile);
 
             const res = await fetch(API_URL, {
@@ -164,10 +165,7 @@ const TCManager = () => {
     };
 
     const openEditModal = (tc) => {
-        setEditTC({
-            ...tc,
-            issueDate: tc.issueDate ? new Date(tc.issueDate).toISOString().split('T')[0] : ''
-        });
+        setEditTC({ ...tc });
         setIsModalOpen(true);
     };
 
@@ -176,12 +174,17 @@ const TCManager = () => {
         setEditTC(null);
         setSelectedFile(null);
         setTcPreview(null);
-        setNewTC({ studentName: '', admissionNo: '', issueDate: '', className: '', tcNumber: '' });
+        setNewTC({ studentName: '', admissionNo: '', className: '' });
     };
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
+            if (file.type !== 'image/jpeg') {
+                addNotification('Only JPEG format is allowed', 'error');
+                e.target.value = '';
+                return;
+            }
             setSelectedFile(file);
             setTcPreview(URL.createObjectURL(file));
         }
@@ -388,7 +391,8 @@ const TCManager = () => {
                                 <div className="flex-1">
                                     <p className="text-[8px] font-black uppercase tracking-widest text-sky-600">Student Portrait</p>
                                     <p className="text-[10px] text-slate-400 font-bold mt-0.5">Click to select photo</p>
-                                    <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" id="studentPhoto" />
+                                    <p className="text-[8px] font-bold text-rose-400 uppercase tracking-widest mt-1">JPEG format only (.jpg / .jpeg)</p>
+                                    <input type="file" accept="image/jpeg" onChange={handleFileChange} className="hidden" id="studentPhoto" />
                                 </div>
                             </div>
 
@@ -427,28 +431,6 @@ const TCManager = () => {
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1.5">
-                                        <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 ml-1">Issue Date</label>
-                                        <input
-                                            type="date"
-                                            className="w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-50 dark:border-slate-700 rounded-xl px-4 py-3 font-bold text-[12px] text-slate-900 dark:text-white outline-none focus:border-sky-600"
-                                            value={editTC ? editTC.issueDate : newTC.issueDate}
-                                            onChange={(e) => editTC ? setEditTC({ ...editTC, issueDate: e.target.value }) : setNewTC({ ...newTC, issueDate: e.target.value })}
-                                            required
-                                        />
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 ml-1">Serial No</label>
-                                        <input
-                                            type="text"
-                                            className="w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-50 dark:border-slate-700 rounded-xl px-4 py-3 font-bold text-[12px] text-slate-900 dark:text-white outline-none focus:border-sky-600"
-                                            value={editTC ? editTC.tcNumber : newTC.tcNumber}
-                                            onChange={(e) => editTC ? setEditTC({ ...editTC, tcNumber: e.target.value }) : setNewTC({ ...newTC, tcNumber: e.target.value })}
-                                            required
-                                        />
-                                    </div>
-                                </div>
                             </div>
 
                             <div className="flex gap-4 pt-2">

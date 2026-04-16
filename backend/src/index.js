@@ -11,6 +11,7 @@ import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import galleryRoutes from './routes/galleryRoutes.js';
 import dynamicRoutes from './routes/dynamicRoutes.js';
+import categoryRoutes from './routes/categoryRoutes.js';
 
 dotenv.config();
 
@@ -37,6 +38,7 @@ const __dirname = path.dirname(__filename);
 // Routes Middleware
 app.use('/api', authRoutes);
 app.use('/api/gallery', galleryRoutes);
+app.use('/api/categories', categoryRoutes);
 app.use('/api', dynamicRoutes);
 
 // ✅ THIS IS THE FIX (Static File Serving)
