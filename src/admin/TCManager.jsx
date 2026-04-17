@@ -10,6 +10,7 @@ import {
     X,
     CheckCircle2,
     Edit,
+    Maximize2,
     Image as ImageIcon,
     AlertCircle
 } from 'lucide-react';
@@ -27,6 +28,7 @@ const TCManager = () => {
     const [selectedFile, setSelectedFile] = useState(null);
     const [tcPreview, setTcPreview] = useState(null);
     const [deleteId, setDeleteId] = useState(null);
+    const [photoPreview, setPhotoPreview] = useState(null);
     const [notifications, setNotifications] = useState([]);
     const { user } = useAuth();
     const API_URL = `${API_BASE_URL}/tc`;
@@ -100,26 +102,25 @@ const TCManager = () => {
         try {
             const formData = new FormData();
             Object.keys(editTC).forEach(key => {
-                if (key !== '_id' && key !== '__v' && key !== 'createdAt' && key !== 'updatedAt') {
+                if (!['id', 'createdAt', 'updatedAt'].includes(key)) {
                     formData.append(key, editTC[key]);
                 }
             });
             if (selectedFile) formData.append('image', selectedFile);
 
-            const res = await fetch(`${API_URL}/${editTC._id}`, {
+            const res = await fetch(`${API_URL}/${editTC.id}`, {
                 method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${user?.token}`
-                },
+                headers: { 'Authorization': `Bearer ${user?.token}` },
                 body: formData
             });
             if (res.ok) {
                 const data = await res.json();
-                setTcs(prev => prev.map(tc => tc._id === data._id ? data : tc));
+                setTcs(prev => prev.map(tc => tc.id === data.id ? data : tc));
                 closeModal();
                 addNotification('Record updated successfully');
             } else {
-                addNotification('Failed to update record', 'error');
+                const err = await res.json().catch(() => ({}));
+                addNotification(err.message || 'Failed to update record', 'error');
             }
         } catch (err) {
             console.error("Failed to update TC:", err);
@@ -142,17 +143,9 @@ const TCManager = () => {
             });
             
             if (res.ok || res.status === 404) {
-                // If it's 200 or 404 (already gone), we clean up
-                setTcs(prev => prev.filter(tc => String(tc._id) !== String(idToDelete)));
+                setTcs(prev => prev.filter(tc => String(tc.id) !== String(idToDelete)));
                 setDeleteId(null);
-                
-                if (res.ok) addNotification('Record removed from registry');
-                else addNotification('Sync error: Record already removed', 'info');
-
-                // Force a clean reload to sync everything
-                setTimeout(() => {
-                    window.location.reload();
-                }, 500);
+                addNotification(res.ok ? 'Record removed from registry' : 'Record already removed');
             } else {
                 const errorData = await res.json().catch(() => ({}));
                 addNotification(errorData.message || 'Server rejected removal', 'error');
@@ -179,15 +172,20 @@ const TCManager = () => {
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
-        if (file) {
-            if (file.type !== 'image/jpeg') {
-                addNotification('Only JPEG format is allowed', 'error');
-                e.target.value = '';
-                return;
-            }
-            setSelectedFile(file);
-            setTcPreview(URL.createObjectURL(file));
+        if (!file) return;
+        const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        if (!allowed.includes(file.type)) {
+            addNotification('Only JPG, PNG, or WebP images are allowed', 'error');
+            e.target.value = '';
+            return;
         }
+        if (file.size > 1 * 1024 * 1024) {
+            addNotification('Image must be under 1 MB', 'error');
+            e.target.value = '';
+            return;
+        }
+        setSelectedFile(file);
+        setTcPreview(URL.createObjectURL(file));
     };
 
     const filteredTCs = tcs.filter(tc => {
@@ -271,21 +269,29 @@ const TCManager = () => {
                         </thead>
                         <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
                             {filteredTCs.map((tc, index) => (
-                                <tr 
-                                    key={tc._id} 
+                                <tr
+                                    key={tc.id ?? index}
                                     className="group hover:bg-slate-50/50 dark:hover:bg-white/5 transition-all duration-300 animate-in fade-in slide-in-from-left-4"
                                     style={{ animationDelay: `${index * 50}ms` }}
                                 >
                                     <td className="px-10 py-6">
                                         <div className="flex items-center gap-5">
-                                            <div className="h-16 w-16 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-white/10 overflow-hidden shrink-0 group-hover:shadow-xl transition-all group-hover:-translate-y-1 relative">
+                                            <div
+                                                className={`h-20 w-16 rounded-2xl overflow-hidden shrink-0 relative border transition-all duration-300 ${tc?.imageFile ? 'cursor-pointer border-slate-200 dark:border-slate-700 hover:border-[#8B0000] hover:shadow-lg hover:scale-105' : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700'}`}
+                                                onClick={() => tc?.imageFile && setPhotoPreview({ url: getImageUrl(tc.imageFile), name: tc.studentName })}
+                                            >
                                                 {tc?.imageFile ? (
-                                                    <img
-                                                        src={getImageUrl(tc.imageFile)}
-                                                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
-                                                        alt={tc?.studentName || 'Student'}
-                                                        onError={(e) => getFallbackImageUrl(e, tc.imageFile)}
-                                                    />
+                                                    <>
+                                                        <img
+                                                            src={getImageUrl(tc.imageFile)}
+                                                            className="w-full h-full object-cover"
+                                                            alt={tc?.studentName || 'Student'}
+                                                            onError={(e) => getFallbackImageUrl(e, tc.imageFile)}
+                                                        />
+                                                        <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                            <Maximize2 size={16} className="text-white" />
+                                                        </div>
+                                                    </>
                                                 ) : (
                                                     <div className="absolute inset-0 flex items-center justify-center text-slate-300">
                                                         <FileText size={20} />
@@ -335,7 +341,7 @@ const TCManager = () => {
                                                 <Edit size={16} />
                                             </button>
                                             <button
-                                                onClick={() => setDeleteId(tc._id)}
+                                                onClick={() => setDeleteId(tc.id)}
                                                 className="p-3 bg-white dark:bg-slate-800 text-rose-600 rounded-lg hover:bg-rose-600 hover:text-white transition-all shadow-sm active:scale-95 border border-slate-100 dark:border-slate-700"
                                                 title="Delete Record"
                                             >
@@ -391,8 +397,8 @@ const TCManager = () => {
                                 <div className="flex-1">
                                     <p className="text-[8px] font-black uppercase tracking-widest text-sky-600">Student Portrait</p>
                                     <p className="text-[10px] text-slate-400 font-bold mt-0.5">Click to select photo</p>
-                                    <p className="text-[8px] font-bold text-rose-400 uppercase tracking-widest mt-1">JPEG format only (.jpg / .jpeg)</p>
-                                    <input type="file" accept="image/jpeg" onChange={handleFileChange} className="hidden" id="studentPhoto" />
+                                    <p className="text-[8px] font-bold text-rose-400 uppercase tracking-widest mt-1">JPG / PNG / WebP · Max 1 MB</p>
+                                    <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleFileChange} className="hidden" id="studentPhoto" />
                                 </div>
                             </div>
 
@@ -453,6 +459,34 @@ const TCManager = () => {
                     </div>
                 ))}
             </div>
+
+            {/* Photo Lightbox */}
+            {photoPreview && (
+                <div
+                    className="fixed inset-0 z-[10002] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-2xl animate-in fade-in duration-300"
+                    onClick={() => setPhotoPreview(null)}
+                >
+                    <button
+                        onClick={() => setPhotoPreview(null)}
+                        className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-white/20 text-white rounded-2xl transition-all border border-white/10"
+                    >
+                        <X size={22} />
+                    </button>
+                    <div
+                        className="flex flex-col items-center gap-6 max-w-2xl w-full animate-in zoom-in-95 duration-300"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <img
+                            src={photoPreview.url}
+                            alt={photoPreview.name}
+                            className="max-h-[78vh] max-w-full object-contain rounded-2xl shadow-2xl border border-white/10"
+                        />
+                        <p className="text-white font-bold text-sm uppercase tracking-widest opacity-70">
+                            {photoPreview.name}
+                        </p>
+                    </div>
+                </div>
+            )}
 
             {/* Custom Delete Confirmation Modal */}
             {deleteId && (

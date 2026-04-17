@@ -121,7 +121,7 @@ const GalleryManager = () => {
         if (!editingCat || !editingCat.name.trim()) return;
         setCatLoading(true);
         try {
-            const res = await fetch(`${CAT_URL}/${editingCat._id}`, {
+            const res = await fetch(`${CAT_URL}/${editingCat.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${user?.token}` },
                 body: JSON.stringify({ name: editingCat.name.trim() }),
@@ -179,13 +179,11 @@ const GalleryManager = () => {
         try {
             const res = await fetch(`${API_URL}/${idToDelete}`, {
                 method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${user?.token}`
-                }
+                headers: { 'Authorization': `Bearer ${user?.token}` }
             });
 
             if (res.ok || res.status === 404) {
-                setImages(prev => prev.filter(img => String(img._id) !== String(idToDelete)));
+                setImages(prev => prev.filter(img => String(img.id) !== String(idToDelete)));
                 setDeleteId(null);
 
                 if (res.ok) addNotification('Gallery asset removed');
@@ -214,11 +212,21 @@ const GalleryManager = () => {
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
-        if (file) {
-            setPreviewUrl(URL.createObjectURL(file));
-            setNewImageData({ ...newImageData, alt: file.name.split('.')[0] });
-            setIsModalOpen(true);
+        if (!file) return;
+        const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        if (!allowed.includes(file.type)) {
+            addNotification('Only JPG, PNG, or WebP images are allowed', 'error');
+            e.target.value = '';
+            return;
         }
+        if (file.size > 1 * 1024 * 1024) {
+            addNotification('Image must be under 1 MB', 'error');
+            e.target.value = '';
+            return;
+        }
+        setPreviewUrl(URL.createObjectURL(file));
+        setNewImageData({ ...newImageData, alt: file.name.split('.')[0] });
+        setIsModalOpen(true);
     };
 
     const handlePublish = async () => {
@@ -270,10 +278,20 @@ const GalleryManager = () => {
 
     const handleEditFileChange = (e) => {
         const file = e.target.files[0];
-        if (file) {
-            setPreviewUrl(URL.createObjectURL(file));
-            setEditingImage({ ...editingImage, newFile: file });
+        if (!file) return;
+        const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        if (!allowed.includes(file.type)) {
+            addNotification('Only JPG, PNG, or WebP images are allowed', 'error');
+            e.target.value = '';
+            return;
         }
+        if (file.size > 1 * 1024 * 1024) {
+            addNotification('Image must be under 1 MB', 'error');
+            e.target.value = '';
+            return;
+        }
+        setPreviewUrl(URL.createObjectURL(file));
+        setEditingImage({ ...editingImage, newFile: file });
     };
 
     const handleUpdate = async () => {
@@ -289,7 +307,7 @@ const GalleryManager = () => {
                 formData.append('image', editingImage.newFile);
             }
 
-            const res = await fetch(`${API_URL}/${editingImage._id}`, {
+            const res = await fetch(`${API_URL}/${editingImage.id}`, {
                 method: 'PUT',
                 headers: {
                     Authorization: `Bearer ${user?.token}`
@@ -300,7 +318,7 @@ const GalleryManager = () => {
             const data = await res.json();
 
             if (res.ok) {
-                setImages(prev => prev.map(img => img._id === data._id ? data : img));
+                setImages(prev => prev.map(img => img.id === data.id ? data : img));
                 setIsEditModalOpen(false);
                 setEditingImage(null);
                 setPreviewUrl('');
@@ -437,7 +455,7 @@ const GalleryManager = () => {
                         </thead>
                         <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
                             {filteredImages.map((img, idx) => (
-                                <tr key={img._id} className="group hover:bg-slate-50/50 dark:hover:bg-white/5 transition-all duration-300">
+                                <tr key={img.id ?? idx} className="group hover:bg-slate-50/50 dark:hover:bg-white/5 transition-all duration-300">
                                     <td className="px-8 py-6">
                                         <div className="relative h-20 w-32 rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm group-hover:shadow-xl transition-all group-hover:-translate-y-1">
 
@@ -460,7 +478,7 @@ const GalleryManager = () => {
                                     <td className="px-8 py-6">
                                         <div className="flex flex-col">
                                             <span className="text-[14px] font-semibold text-slate-700 dark:text-white uppercase tracking-normal group-hover:text-[#8B0000] transition-colors">{img.alt || 'Unnamed Document'}</span>
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">UUID: {img._id.slice(-8)}</span>
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">ID: {img.id ?? 'N/A'}</span>
                                         </div>
                                     </td>
                                     <td className="px-8 py-6">
@@ -477,10 +495,7 @@ const GalleryManager = () => {
                                     <td className="px-8 py-6 text-right">
                                         <div className="flex items-center justify-end gap-3 transition-opacity">
                                             <button
-                                                onClick={() => {
-                                                    setEditingImage(img);
-                                                    setIsEditModalOpen(true);
-                                                }}
+                                                onClick={() => { setEditingImage(img); setIsEditModalOpen(true); }}
                                                 className="p-3 bg-white dark:bg-slate-800 text-[#8B0000] rounded-xl hover:bg-[#8B0000] hover:text-white transition-all shadow-sm active:scale-95 border border-slate-100 dark:border-slate-800"
                                                 title="Edit Asset"
                                             >
@@ -494,7 +509,7 @@ const GalleryManager = () => {
                                                 <Maximize2 size={16} />
                                             </button>
                                             <button
-                                                onClick={() => setDeleteId(img._id)}
+                                                onClick={() => setDeleteId(img.id)}
                                                 className="p-3 bg-white dark:bg-slate-800 text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm active:scale-95 border border-slate-100 dark:border-slate-800"
                                                 title="Delete Asset"
                                             >
@@ -755,7 +770,7 @@ const GalleryManager = () => {
                                 <div className="space-y-2">
                                     {categories.map((cat) => (
                                         <div key={cat} className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 rounded-xl px-4 py-3 border border-slate-100 dark:border-slate-700">
-                                            {editingCat?.name === cat ? (
+                                            {editingCat?.originalName === cat ? (
                                                 <>
                                                     <input
                                                         type="text"
@@ -780,7 +795,7 @@ const GalleryManager = () => {
                                                         onClick={async () => {
                                                             const raw = await fetchCategoriesRaw();
                                                             const found = raw.find(c => c.name === cat);
-                                                            if (found) setEditingCat(found);
+                                                            if (found) setEditingCat({ id: found.id, name: found.name, originalName: found.name });
                                                         }}
                                                         className="p-2 bg-white dark:bg-slate-900 text-[#8B0000] rounded-lg hover:bg-[#8B0000] hover:text-white transition-all border border-slate-200 dark:border-slate-700"
                                                     >
@@ -790,7 +805,7 @@ const GalleryManager = () => {
                                                         onClick={async () => {
                                                             const raw = await fetchCategoriesRaw();
                                                             const found = raw.find(c => c.name === cat);
-                                                            if (found) setDeleteCatId(found._id);
+                                                            if (found) setDeleteCatId(found.id);
                                                         }}
                                                         className="p-2 bg-white dark:bg-slate-900 text-rose-500 rounded-lg hover:bg-rose-500 hover:text-white transition-all border border-slate-200 dark:border-slate-700"
                                                     >

@@ -154,8 +154,8 @@ const EnquiryManager = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
-                            {filtered.map((enq) => (
-                                <tr key={enq._id} className="group hover:bg-slate-50/50 dark:hover:bg-white/5 transition-all duration-300">
+                            {filtered.map((enq, idx) => (
+                                <tr key={enq._id ?? idx} className="group hover:bg-slate-50/50 dark:hover:bg-white/5 transition-all duration-300">
                                     <td className="px-10 py-6">
                                         <div className="flex items-center gap-5">
                                             <div className="h-14 w-14 rounded-2xl bg-rose-50 dark:bg-sky-900/20 text-[#8B0000] flex items-center justify-center border border-sky-100/50 shrink-0 group-hover:scale-110 transition-transform">
@@ -302,26 +302,6 @@ const EnquiryManager = () => {
                             >
                                 MARK AS RESPONDED
                             </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-            {/* Delete Confirmation Modal */}
-            {deleteId && (
-                <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setDeleteId(null)} />
-                    <div className="relative bg-white dark:bg-slate-900 w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-10 duration-500 border border-white/20">
-                        <div className="p-10 text-center">
-                            <div className="h-20 w-20 bg-rose-50 dark:bg-rose-500/10 rounded-full flex items-center justify-center mx-auto mb-8 animate-bounce">
-                                <Trash2 size={32} className="text-rose-600" />
-                            </div>
-                            <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter mb-4">Confirm Deletion?</h3>
-                            <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-10 leading-relaxed">This record will be permanently purged from the registry.</p>
-                            
-                            <div className="flex gap-4">
-                                <button onClick={() => setDeleteId(null)} className="flex-1 px-8 py-4 bg-slate-50 dark:bg-slate-800 text-slate-400 font-bold rounded-2xl text-[10px] uppercase tracking-[0.2em] hover:bg-slate-100 transition-all">Cancel</button>
-                                <button onClick={confirmDelete} className="flex-1 px-8 py-4 bg-[#8B0000] text-white font-bold rounded-2xl text-[10px] uppercase tracking-[0.2em] hover:bg-red-700 shadow-xl shadow-rose-200/20 transition-all active:scale-95">Purge Now</button>
-                            </div>
                         </div>
                     </div>
                 </div>

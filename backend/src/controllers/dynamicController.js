@@ -1,15 +1,13 @@
 import { Event, Enquiry, TC } from '../models/DynamicContent.js';
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { r2Client, getR2Url } from '../config/r2.js';
+import { DeleteObjectCommand } from '@aws-sdk/client-s3';
+import dotenv from 'dotenv';
+dotenv.config();
 
 // --- EVENTS ---
 export const getEvents = async (req, res) => {
     try {
-        const events = await Event.find().sort({ date: 1 });
+        const events = await Event.findAll({ order: [['date', 'ASC']] });
         res.json(events);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -27,12 +25,10 @@ export const createEvent = async (req, res) => {
 
 export const updateEvent = async (req, res) => {
     try {
-        const event = await Event.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (event) {
-            res.json(event);
-        } else {
-            res.status(404).json({ message: 'Event not found' });
-        }
+        const event = await Event.findByPk(req.params.id);
+        if (!event) return res.status(404).json({ message: 'Event not found' });
+        await event.update(req.body);
+        res.json(event);
     } catch (err) {
         res.status(400).json({ message: err.message });
     }
@@ -40,12 +36,10 @@ export const updateEvent = async (req, res) => {
 
 export const deleteEvent = async (req, res) => {
     try {
-        const event = await Event.findByIdAndDelete(req.params.id);
-        if (event) {
-            res.json({ message: 'Event deleted' });
-        } else {
-            res.status(404).json({ message: 'Event not found' });
-        }
+        const event = await Event.findByPk(req.params.id);
+        if (!event) return res.status(404).json({ message: 'Event not found' });
+        await event.destroy();
+        res.json({ message: 'Event deleted' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -54,7 +48,7 @@ export const deleteEvent = async (req, res) => {
 // --- ENQUIRIES ---
 export const getEnquiries = async (req, res) => {
     try {
-        const enquiries = await Enquiry.find().sort({ createdAt: -1 });
+        const enquiries = await Enquiry.findAll({ order: [['createdAt', 'DESC']] });
         res.json(enquiries);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -73,7 +67,7 @@ export const submitEnquiry = async (req, res) => {
 // --- TRANSFER CERTIFICATES ---
 export const getTCs = async (req, res) => {
     try {
-        const tcs = await TC.find().sort({ issueDate: -1 });
+        const tcs = await TC.findAll({ order: [['issueDate', 'DESC']] });
         res.json(tcs);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -83,18 +77,18 @@ export const getTCs = async (req, res) => {
 export const searchTC = async (req, res) => {
     const { admissionNo } = req.params;
     try {
+        const { Op } = await import('sequelize');
         const query = admissionNo.trim();
-        const tc = await TC.findOne({ 
-            $or: [
-                { admissionNo: { $regex: new RegExp(`^${query}$`, "i") } },
-                { studentName: { $regex: new RegExp(`^${query}$`, "i") } }
-            ]
+        const tc = await TC.findOne({
+            where: {
+                [Op.or]: [
+                    { admissionNo: query },
+                    { studentName: { [Op.like]: `%${query}%` } }
+                ]
+            }
         });
-        if (tc) {
-            res.json(tc);
-        } else {
-            res.status(404).json({ message: 'Certificate not found' });
-        }
+        if (tc) res.json(tc);
+        else res.status(404).json({ message: 'Certificate not found' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -104,44 +98,41 @@ export const createTC = async (req, res) => {
     try {
         const tcData = { ...req.body };
         if (req.file) {
-            tcData.imageFile = `/uploads/${req.file.filename}`;
+            tcData.imageFile = getR2Url(req.file.key);
         }
         const tc = await TC.create(tcData);
         res.status(201).json(tc);
     } catch (err) {
-        console.error("TC Creation Backend Error:", err);
-        res.status(500).json({ 
-            message: 'Server Error during TC creation', 
-            details: err.message,
-            stack: process.env.NODE_ENV === 'production' ? null : err.stack
-        });
+        console.error('TC Creation Error:', err);
+        res.status(500).json({ message: 'Server Error during TC creation', details: err.message });
     }
 };
 
 export const updateTC = async (req, res) => {
     try {
+        const tc = await TC.findByPk(req.params.id);
+        if (!tc) return res.status(404).json({ message: 'TC not found' });
+
         const tcData = { ...req.body };
-        
-        // Handle new file upload
+
         if (req.file) {
-            tcData.imageFile = `/uploads/${req.file.filename}`;
-            
-            // Delete old file if exists
-            const existingTC = await TC.findById(req.params.id);
-            if (existingTC && existingTC.imageFile) {
-                const oldFilePath = path.join(__dirname, '..', existingTC.imageFile);
-                if (fs.existsSync(oldFilePath)) {
-                    fs.unlinkSync(oldFilePath);
+            // Delete old image from R2
+            if (tc.imageFile && tc.imageFile.includes(process.env.CLOUDFLARE_R2_PUBLIC_URL)) {
+                try {
+                    const key = tc.imageFile.replace(`${process.env.CLOUDFLARE_R2_PUBLIC_URL}/`, '');
+                    await r2Client.send(new DeleteObjectCommand({
+                        Bucket: process.env.CLOUDFLARE_R2_BUCKET_NAME,
+                        Key: key,
+                    }));
+                } catch (r2Err) {
+                    console.warn('R2 delete warning:', r2Err.message);
                 }
             }
+            tcData.imageFile = getR2Url(req.file.key);
         }
 
-        const tc = await TC.findByIdAndUpdate(req.params.id, tcData, { new: true });
-        if (tc) {
-            res.json(tc);
-        } else {
-            res.status(404).json({ message: 'TC not found' });
-        }
+        await tc.update(tcData);
+        res.json(tc);
     } catch (err) {
         res.status(400).json({ message: err.message });
     }
@@ -149,20 +140,23 @@ export const updateTC = async (req, res) => {
 
 export const deleteTC = async (req, res) => {
     try {
-        const tc = await TC.findById(req.params.id);
-        if (tc) {
-            // Delete associated image file
-            if (tc.imageFile) {
-                const filePath = path.join(__dirname, '..', tc.imageFile);
-                if (fs.existsSync(filePath)) {
-                    fs.unlinkSync(filePath);
-                }
+        const tc = await TC.findByPk(req.params.id);
+        if (!tc) return res.status(404).json({ message: 'TC not found' });
+
+        if (tc.imageFile && tc.imageFile.includes(process.env.CLOUDFLARE_R2_PUBLIC_URL)) {
+            try {
+                const key = tc.imageFile.replace(`${process.env.CLOUDFLARE_R2_PUBLIC_URL}/`, '');
+                await r2Client.send(new DeleteObjectCommand({
+                    Bucket: process.env.CLOUDFLARE_R2_BUCKET_NAME,
+                    Key: key,
+                }));
+            } catch (r2Err) {
+                console.warn('R2 delete warning:', r2Err.message);
             }
-            await TC.findByIdAndDelete(req.params.id);
-            res.json({ message: 'TC deleted' });
-        } else {
-            res.status(404).json({ message: 'TC not found' });
         }
+
+        await tc.destroy();
+        res.json({ message: 'TC deleted' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -171,17 +165,12 @@ export const deleteTC = async (req, res) => {
 // --- STATS ---
 export const getStats = async (req, res) => {
     try {
-        const eventCount = await Event.countDocuments();
-        const enquiryCount = await Enquiry.countDocuments();
-        const tcCount = await TC.countDocuments();
-        
-        res.json({
-            events: eventCount,
-            enquiries: enquiryCount,
-            tcs: tcCount,
-            students: tcCount, // Using TC count as a proxy for students for now
-            staff: 0
-        });
+        const [eventCount, enquiryCount, tcCount] = await Promise.all([
+            Event.count(),
+            Enquiry.count(),
+            TC.count(),
+        ]);
+        res.json({ events: eventCount, enquiries: enquiryCount, tcs: tcCount, students: tcCount, staff: 0 });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

@@ -6,18 +6,13 @@ const DEFAULT_CATEGORIES = [
     'Teacher Picnic', 'Republic Day', 'General'
 ];
 
-// @desc    Get all categories
-// @route   GET /api/categories
-// @access  Public
 const getCategories = async (req, res) => {
     try {
-        let categories = await Category.find({}).sort({ name: 1 });
+        let categories = await Category.findAll({ order: [['name', 'ASC']] });
 
-        // Seed defaults if collection is empty
         if (categories.length === 0) {
-            const docs = DEFAULT_CATEGORIES.map(name => ({ name }));
-            await Category.insertMany(docs);
-            categories = await Category.find({}).sort({ name: 1 });
+            await Category.bulkCreate(DEFAULT_CATEGORIES.map(name => ({ name })));
+            categories = await Category.findAll({ order: [['name', 'ASC']] });
         }
 
         res.json(categories);
@@ -26,20 +21,13 @@ const getCategories = async (req, res) => {
     }
 };
 
-// @desc    Create a category
-// @route   POST /api/categories
-// @access  Private/Admin
 const createCategory = async (req, res) => {
     try {
         const { name } = req.body;
-        if (!name || !name.trim()) {
-            return res.status(400).json({ message: 'Category name is required' });
-        }
+        if (!name?.trim()) return res.status(400).json({ message: 'Category name is required' });
 
-        const exists = await Category.findOne({ name: name.trim() });
-        if (exists) {
-            return res.status(400).json({ message: 'Category already exists' });
-        }
+        const exists = await Category.findOne({ where: { name: name.trim() } });
+        if (exists) return res.status(400).json({ message: 'Category already exists' });
 
         const category = await Category.create({ name: name.trim() });
         res.status(201).json(category);
@@ -48,45 +36,31 @@ const createCategory = async (req, res) => {
     }
 };
 
-// @desc    Rename a category
-// @route   PUT /api/categories/:id
-// @access  Private/Admin
 const updateCategory = async (req, res) => {
     try {
         const { name } = req.body;
-        if (!name || !name.trim()) {
-            return res.status(400).json({ message: 'Category name is required' });
-        }
+        if (!name?.trim()) return res.status(400).json({ message: 'Category name is required' });
 
-        const category = await Category.findById(req.params.id);
-        if (!category) {
-            return res.status(404).json({ message: 'Category not found' });
-        }
+        const category = await Category.findByPk(req.params.id);
+        if (!category) return res.status(404).json({ message: 'Category not found' });
 
-        const exists = await Category.findOne({ name: name.trim(), _id: { $ne: req.params.id } });
-        if (exists) {
-            return res.status(400).json({ message: 'Category name already in use' });
-        }
+        const exists = await Category.findOne({ where: { name: name.trim() } });
+        if (exists && exists.id !== category.id) return res.status(400).json({ message: 'Category name already in use' });
 
         category.name = name.trim();
-        const updated = await category.save();
-        res.json(updated);
+        await category.save();
+        res.json(category);
     } catch (error) {
         res.status(500).json({ message: 'Server Error' });
     }
 };
 
-// @desc    Delete a category
-// @route   DELETE /api/categories/:id
-// @access  Private/Admin
 const deleteCategory = async (req, res) => {
     try {
-        const category = await Category.findById(req.params.id);
-        if (!category) {
-            return res.status(404).json({ message: 'Category not found' });
-        }
+        const category = await Category.findByPk(req.params.id);
+        if (!category) return res.status(404).json({ message: 'Category not found' });
 
-        await category.deleteOne();
+        await category.destroy();
         res.json({ message: 'Category deleted' });
     } catch (error) {
         res.status(500).json({ message: 'Server Error' });

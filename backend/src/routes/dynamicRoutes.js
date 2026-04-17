@@ -1,12 +1,12 @@
 import express from 'express';
-import { 
+import {
     getEvents, createEvent, updateEvent, deleteEvent,
-    getEnquiries, submitEnquiry, 
+    getEnquiries, submitEnquiry,
     getTCs, searchTC, createTC, updateTC, deleteTC,
     getStats
 } from '../controllers/dynamicController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
-import upload from '../middleware/uploadMiddleware.js';
+import { uploadToR2 } from '../config/r2.js';
 
 const router = express.Router();
 
@@ -19,7 +19,7 @@ router.route('/events/:id')
     .put(protect, admin, updateEvent)
     .delete(protect, admin, deleteEvent);
 
-// Enquiries (Public POST)
+// Enquiries
 router.route('/enquiries')
     .get(protect, admin, getEnquiries)
     .post(submitEnquiry);
@@ -27,12 +27,12 @@ router.route('/enquiries')
 // TCs
 router.route('/tc')
     .get(getTCs)
-    .post(protect, admin, upload.single('image'), createTC);
+    .post(protect, admin, uploadToR2('tc').single('image'), createTC);
 
-router.get('/tc/:admissionNo', searchTC);
+router.get('/tc/search/:admissionNo', searchTC);
 
 router.route('/tc/:id')
-    .put(protect, admin, upload.single('image'), updateTC)
+    .put(protect, admin, uploadToR2('tc').single('image'), updateTC)
     .delete(protect, admin, deleteTC);
 
 router.get('/stats', protect, admin, getStats);
