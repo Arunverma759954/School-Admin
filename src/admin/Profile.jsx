@@ -4,27 +4,22 @@ import { Mail, Phone, MapPin, Briefcase, Link as LinkIcon, Twitter, Facebook, Li
 
 const Profile = () => {
     const [user, setUser] = useState({
-        name: 'Arun Verma',
-        role: 'School Administrator',
-        email: 'arunverma7599@gmail.com',
-        avatar: 'https://i.pravatar.cc/300?img=11',
-        phone: '+91 98765 43210',
+        name: "St. Joseph's Convent School",
+        role: 'Institutional Management',
+        email: 'sjcsjharsuguda@gmail.com',
+        avatar: '/logo.jpg',
+        phone: '+91 6645-272238',
         location: 'Jharsuguda, Odisha',
-        posts: '42',
-        followers: '850',
-        following: '120'
+        posts: '250+',
+        followers: '1500+',
+        following: '45'
     });
 
-    useEffect(() => {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-            setUser(prev => ({ ...prev, ...JSON.parse(storedUser) }));
-        }
-    }, []);
+    // useEffect removed to maintain school branding permanently
 
     return (
         <>
-            <Breadcrumb pageName="Administrator Profile" />
+            <Breadcrumb pageName="School Profile" />
 
             <div className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900 overflow-visible mt-4">
                 {/* Cover Image */}
@@ -76,31 +71,31 @@ const Profile = () => {
                                 <span className="font-bold text-slate-900 dark:text-white text-lg">
                                     {user.posts || '42'}
                                 </span>
-                                <span className="text-xs text-slate-500 font-medium uppercase tracking-wide">Updates</span>
+                                <span className="text-xs text-slate-500 font-medium uppercase tracking-wide">Excellence</span>
                             </div>
                             <div className="flex flex-col items-center justify-center gap-1 px-4">
                                 <span className="font-bold text-slate-900 dark:text-white text-lg">
-                                    {user.followers || '850'}
+                                    {user.followers || '1500+'}
                                 </span>
-                                <span className="text-xs text-slate-500 font-medium uppercase tracking-wide">Staff</span>
+                                <span className="text-xs text-slate-500 font-medium uppercase tracking-wide">Students</span>
                             </div>
                             <div className="flex flex-col items-center justify-center gap-1 px-4">
                                 <span className="font-bold text-slate-900 dark:text-white text-lg">
                                     {user.following || '120'}
                                 </span>
-                                <span className="text-xs text-slate-500 font-medium uppercase tracking-wide">Groups</span>
+                                <span className="text-xs text-slate-500 font-medium uppercase tracking-wide">Faculty</span>
                             </div>
                         </div>
 
                         {/* About Section */}
                         <div className="mx-auto max-w-2xl px-4">
                             <h4 className="font-bold text-slate-900 dark:text-white text-sm uppercase tracking-wide mb-3 text-sky-600">
-                                About Me
+                                About Our School
                             </h4>
                             <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-                                Dedicated School Administrator with over 10 years of experience in managing educational institutions. 
-                                Specializing in student welfare, faculty management, and digital transformation of academic processes. 
-                                Committed to maintaining the high standards of St. Joseph's Convent School.
+                                St. Joseph's Convent School is committed to providing quality education and fostering institutional excellence. 
+                                With a focus on student welfare and academic innovation, we strive to maintain the highest 
+                                standards of learning and character development since our inception.
                             </p>
                         </div>
 

@@ -83,7 +83,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                             <li>
                                 <NavLink to="/admin/enquiries" className={({ isActive }) => isActive ? activeItemClass : inactiveItemClass}>
                                     <MessageSquare className="h-5 w-5" />
-                                    Admission Inbox
+                                    Admission Inquiry
                                 </NavLink>
                             </li>
                             <li>
@@ -96,7 +96,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                     </div>
 
                     {/* ACADEMIC RECORDS */}
-                    <div>
+                    {/* <div>
                         <h3 className="mb-4 px-3 text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-600 flex items-center gap-2">
                             <div className="h-1 w-1 rounded-full bg-[#8B0000]"></div>
                             Academic Records
@@ -121,7 +121,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                                 </NavLink>
                             </li>
                         </ul>
-                    </div>
+                    </div> */}
 
                     {/* MANAGEMENT Group */}
                     <div>

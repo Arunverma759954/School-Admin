@@ -64,7 +64,7 @@ const EventManager = () => {
     const handleUpdate = async (e) => {
         e.preventDefault();
         try {
-            const res = await fetch(`${API_URL}/${editEvent._id}`, {
+            const res = await fetch(`${API_URL}/${editEvent.id}`, {
                 method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -74,7 +74,7 @@ const EventManager = () => {
             });
             if (res.ok) {
                 const data = await res.json();
-                setEvents(prev => prev.map(ev => ev._id === data._id ? data : ev));
+                setEvents(prev => prev.map(ev => ev.id === data.id ? data : ev));
                 setIsModalOpen(false);
                 setEditEvent(null);
             }
@@ -96,7 +96,7 @@ const EventManager = () => {
             });
             
             if (res.ok || res.status === 404) {
-                setEvents(prev => prev.filter(event => String(event._id) !== String(idToDelete)));
+                setEvents(prev => prev.filter(event => String(event.id) !== String(idToDelete)));
                 setDeleteId(null);
                 
                 // Force sync
@@ -183,11 +183,11 @@ const EventManager = () => {
                         </thead>
                         <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
                             {events.map((event) => (
-                                <tr key={event._id} className="group hover:bg-slate-50/50 dark:hover:bg-white/5 transition-all duration-300">
+                                <tr key={event.id} className="group hover:bg-slate-50/50 dark:hover:bg-white/5 transition-all duration-300">
                                     <td className="px-8 py-6">
                                         <div className="flex flex-col">
                                             <span className="text-[14px] font-semibold text-slate-700 dark:text-white uppercase tracking-normal group-hover:text-[#8B0000] transition-colors">{event.title}</span>
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 opacity-60">ID: {event._id.slice(-6).toUpperCase()}</span>
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 opacity-60">ID: {event.id?.toString().slice(-6).toUpperCase()}</span>
                                         </div>
                                     </td>
                                     <td className="px-8 py-6">
@@ -216,7 +216,7 @@ const EventManager = () => {
                                                 <Edit size={16} />
                                             </button>
                                             <button 
-                                                onClick={() => setDeleteId(event._id)}
+                                                onClick={() => setDeleteId(event.id)}
                                                 className="p-3 bg-white dark:bg-slate-800 text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm active:scale-95 border border-slate-100 dark:border-slate-700"
                                             >
                                                 <Trash2 size={16} />

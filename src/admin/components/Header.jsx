@@ -15,10 +15,10 @@ const Header = ({ sidebarOpen, setSidebarOpen }) => {
         navigate('/login');
     };
 
-    const userDisplayName = user?.name || 'Administrator';
-    const userRole = user?.role || 'Admin';
-    const userEmail = user?.email || 'admin@school.com';
-    const userAvatar = 'https://i.pinimg.com/564x/7f/6c/64/7f6c64f2d6c4f7f1f8c6f5c2cda6a0c4.jpg';
+    const userDisplayName = "St. Joseph's Convent School";
+    const userRole = user?.role || 'Management Console';
+    const userEmail = "sjcsjharsuguda@gmail.com";
+    const userAvatar = '/logo.jpg';
 
     return (
         <header className="sticky top-0 z-40 flex w-full border-b border-slate-100 bg-white/80 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/80">
@@ -121,30 +121,7 @@ const Header = ({ sidebarOpen, setSidebarOpen }) => {
                                         </div>
                                     </div>
 
-                                    {/* Actions List */}
                                     <ul className="flex flex-col gap-2 relative z-10 p-2">
-                                        <li>
-                                            <button
-                                                onClick={() => { navigate('/admin/profile'); setDropdownOpen(false); }}
-                                                className="flex w-full items-center gap-4 px-5 py-4 text-xs font-bold text-slate-500 hover:bg-slate-50 hover:text-sky-600 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-sky-400 transition-all rounded-2xl group uppercase tracking-widest"
-                                            >
-                                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-900 group-hover:bg-sky-50 dark:group-hover:bg-sky-900/40 transition-all">
-                                                    <User className="h-5 w-5" />
-                                                </div>
-                                                Global Profile
-                                            </button>
-                                        </li>
-                                        <li>
-                                            <button
-                                                onClick={() => { navigate('/admin/settings'); setDropdownOpen(false); }}
-                                                className="flex w-full items-center gap-4 px-5 py-4 text-xs font-bold text-slate-500 hover:bg-slate-50 hover:text-sky-600 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-sky-400 transition-all rounded-2xl group uppercase tracking-widest"
-                                            >
-                                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-900 group-hover:bg-sky-50 dark:group-hover:bg-sky-900/40 transition-all">
-                                                    <Settings className="h-5 w-5" />
-                                                </div>
-                                                System Config
-                                            </button>
-                                        </li>
                                         <li className="my-2 border-t border-slate-50 dark:border-slate-900 mx-4"></li>
                                         <li>
                                             <button

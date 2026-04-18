@@ -58,7 +58,7 @@ const EnquiryManager = () => {
                 headers: { 'Authorization': `Bearer ${user?.token}` }
             });
             if (res.ok || res.status === 404) {
-                setEnquiries(prev => prev.filter(e => String(e._id) !== String(idToDelete)));
+                setEnquiries(prev => prev.filter(e => String(e.id) !== String(idToDelete)));
                 setDeleteId(null);
                 
                 // Force sync
@@ -155,7 +155,7 @@ const EnquiryManager = () => {
                         </thead>
                         <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
                             {filtered.map((enq, idx) => (
-                                <tr key={enq._id ?? idx} className="group hover:bg-slate-50/50 dark:hover:bg-white/5 transition-all duration-300">
+                                <tr key={enq.id ?? idx} className="group hover:bg-slate-50/50 dark:hover:bg-white/5 transition-all duration-300">
                                     <td className="px-10 py-6">
                                         <div className="flex items-center gap-5">
                                             <div className="h-14 w-14 rounded-2xl bg-rose-50 dark:bg-sky-900/20 text-[#8B0000] flex items-center justify-center border border-sky-100/50 shrink-0 group-hover:scale-110 transition-transform">
@@ -213,7 +213,7 @@ const EnquiryManager = () => {
                                                 <Maximize2 size={16} />
                                             </button>
                                             <button 
-                                                onClick={() => setDeleteId(enq._id)}
+                                                onClick={() => setDeleteId(enq.id)}
                                                 className="p-3.5 bg-white dark:bg-slate-800 text-rose-500 rounded-xl hover:bg-rose-500 hover:text-white transition-all shadow-sm active:scale-95 border border-slate-100 dark:border-slate-800"
                                                 title="Invalidate Lead"
                                             >
@@ -291,7 +291,7 @@ const EnquiryManager = () => {
 
                         <div className="px-8 py-6 bg-slate-50/50 dark:bg-slate-800/50 flex gap-4 border-t border-slate-100 dark:border-slate-800">
                             <button 
-                                onClick={() => handleDelete(selectedEnquiry._id)}
+                                onClick={() => handleDelete(selectedEnquiry.id)}
                                 className="flex-1 bg-white dark:bg-slate-900 text-rose-500 font-bold py-4 rounded-xl hover:bg-rose-50 transition-all border border-slate-200 dark:border-slate-700 tracking-widest text-[10px]"
                             >
                                 DELETE LEAD
