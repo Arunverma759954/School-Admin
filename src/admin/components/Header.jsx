@@ -20,6 +20,8 @@ const Header = ({ sidebarOpen, setSidebarOpen }) => {
     const userEmail = "sjcsjharsuguda@gmail.com";
     const userAvatar = '/logo.jpg';
 
+    console.log("force deploy");
+
     return (
         <header className="sticky top-0 z-40 flex w-full border-b border-slate-100 bg-white/80 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/80">
             <div className="flex flex-grow items-center justify-between px-8 py-5">
